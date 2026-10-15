@@ -1,5 +1,5 @@
+YourTube - Turn your favourite YouTube channels, playlists and local video files into a live TV lineup.
 <img width="1918" height="1078" alt="Screenshot 2026-10-14 203858" src="https://github.com/user-attachments/assets/45bd7e25-b2c6-40fb-a1fa-8e248ccb00d8" />
-# YourTube
 
 Turn your favourite YouTube channels and playlists into a live TV lineup. YourTube plays them full screen like cable channels, with an on-screen TV guide, and remembers your channels next time. It is built for a TV or a Raspberry Pi connected to one, and you can drive it with your TV remote or your phone.
 
