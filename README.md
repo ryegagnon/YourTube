@@ -1,3 +1,4 @@
+<img width="1918" height="1078" alt="Screenshot 2026-10-14 203858" src="https://github.com/user-attachments/assets/45bd7e25-b2c6-40fb-a1fa-8e248ccb00d8" />
 # YourTube
 
 Turn your favourite YouTube channels and playlists into a live TV lineup. YourTube plays them full screen like cable channels, with an on-screen TV guide, and remembers your channels next time. It is built for a TV or a Raspberry Pi connected to one, and you can drive it with your TV remote or your phone.
@@ -51,6 +52,7 @@ To update later, run `git pull` and then `./pi/install.sh` again. Your channels 
 Upload the contents of the `web/` folder to any PHP web host and open the site over `https://`. This gives you the TV screen anywhere, but some features (the Exit button, and the TV remote helper) are Raspberry Pi only. See [docs/web-hosting.md](docs/web-hosting.md) for what works on a host and what does not.
 
 ## Using YourTube
+<img width="1913" height="922" alt="Screenshot 2026-10-14 203819" src="https://github.com/user-attachments/assets/f875475e-e4b7-455b-811a-19ea2600e512" />
 
 Click or press a key on the first screen ("Turn on"), then use any of these.
 
@@ -105,10 +107,12 @@ In Settings, a **Raspberry Pi** section (also on the phone) has:
 - **Restart automatically if the app crashes or freezes:** on by default. See [docs/raspberry-pi.md](docs/raspberry-pi.md#watchdog).
 
 ## Phone remote
+<img width="493" height="916" alt="Screenshot 2026-10-14 203618" src="https://github.com/user-attachments/assets/b9464bd8-10a5-4712-a615-516bbc93920d" />
 
 Open `remote.html` on your phone, on the same network as the TV, and enter the 6-character code the TV shows on its start screen and in Settings. It has a Remote tab (round D-pad with a centred OK, channel up and down, number pad, volume), a Guide tab showing what is on and what is next, and a Settings tab for channels, captions, the sleep timer, the API key and quitting. See [docs/remotes.md](docs/remotes.md).
 
 ## Local video files
+<img width="487" height="930" alt="Screenshot 2026-10-14 203730" src="https://github.com/user-attachments/assets/0e996e64-e41f-4e55-9d62-e701753b5d7b" />
 
 A channel can also be a folder of video files on a USB drive or the Pi. Add it from the phone remote (Settings, then Add a local folder) or from Settings on the TV. See [docs/local-files.md](docs/local-files.md).
 
@@ -117,6 +121,7 @@ A channel can also be a folder of video files on a USB drive or the Pi. Add it f
 Without a key, YourTube reads public YouTube pages to learn video lengths and logos. That works today but can break whenever YouTube changes its pages. A free YouTube Data API key (paste it in Settings) makes the guide use YouTube's official service instead. For a channel it scans up to 300 recent videos to find the newest 50 that are 3 minutes or longer, and a playlist is read in full (up to 500 videos). See [docs/how-it-works.md](docs/how-it-works.md#data-sources).
 
 ## Configuration
+<img width="485" height="928" alt="Screenshot 2026-10-14 203747" src="https://github.com/user-attachments/assets/14297274-ee12-4ec0-a718-0ebc74888055" />
 
 Most options are in the Settings screen. On a Raspberry Pi the launcher scripts read these environment variables:
 
