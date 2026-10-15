@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050a55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>YourTube remote</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+:root{--navy:#050a55;--blue:#1b2dae;--edge:#4a5df0;--yel:#ffe23a;--ink:#f3f5ff;--dark:#0a0f4a}
+html,body{min-height:100%;background:var(--navy);color:var(--ink);font:500 20px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+body{padding:calc(12px + env(safe-area-inset-top)) 12px calc(28px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+h1{font-size:30px;font-weight:700;color:var(--yel)}
+h2{font-size:22px;color:var(--yel);margin-top:6px}
+#status{font-size:18px}#status.ok{color:#7dff9b}#status.bad{color:#ff9b8a}
+button{font:inherit;min-height:52px;padding:8px 12px;background:var(--blue);color:#fff;border:2px solid var(--edge);border-radius:8px;cursor:pointer;touch-action:manipulation}
+button:active,button:focus-visible{background:var(--yel);color:var(--dark);outline:none}
+input[type=text],input:not([type]),select{font:inherit;min-height:48px;padding:8px 10px;background:var(--navy);color:#fff;border:2px solid var(--edge);border-radius:8px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible{outline:2px solid var(--yel)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.lg{flex:none;width:64px;height:64px;border-radius:50%;background:var(--dark) center/cover no-repeat;border:3px solid var(--yel);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:28px;color:var(--yel)}
+#now{display:flex;gap:14px;align-items:center;padding:12px 14px;background:#0a1170;border-left:6px solid var(--yel);border-radius:4px}
+#now .t{min-width:0;display:flex;flex-direction:column;line-height:1.1}
+#nn{font-size:34px;color:var(--yel)}#nc{font-size:24px}
+#nt{font-size:18px;opacity:.92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#prog{height:8px;background:#0a1170;border-radius:4px;overflow:hidden}
+#pb{display:block;height:100%;width:0;background:var(--yel)}
+#pt{font-size:17px;opacity:.9;min-height:20px}
+#toast{min-height:24px;color:var(--yel)}
+.tabs button.on{background:var(--yel);color:var(--dark);border-color:var(--yel)}
+.big{min-height:72px;font-size:26px}
+.dp{display:flex;justify-content:center;padding:6px 0}
+.dp svg{width:min(78vw,300px);height:auto;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.dp .w{cursor:pointer;outline:none}
+.dp .w path:first-child{fill:var(--blue);stroke:var(--edge);stroke-width:2}
+.dp .a{fill:#fff;pointer-events:none}
+.dp .w:active path:first-child,.dp .w:focus-visible path:first-child{fill:var(--yel)}
+.dp .w:active .a,.dp .w:focus-visible .a{fill:var(--dark)}
+.dp .ok circle{fill:var(--yel);stroke:var(--dark);stroke-width:3}
+.dp .ok:active circle,.dp .ok:focus-visible circle{fill:#fff}
+.dp .ok text{font:700 42px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;fill:var(--dark);pointer-events:none}
+label.v{display:flex;gap:10px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--yel);height:36px;min-height:36px;padding:0;background:none;border:0}
+.opt{display:flex;gap:10px;align-items:center}
+.opt input{width:24px;height:24px;accent-color:var(--yel)}
+.row{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;text-align:left;width:100%;padding:10px;min-height:84px}
+.row .lg{width:54px;height:54px;font-size:24px}
+.row .t{min-width:0;display:flex;flex-direction:column;line-height:1.1}
+.row b{color:var(--yel);font-size:22px}
+.row small{font-size:17px;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.on{background:var(--yel);color:var(--dark)}.row.on b{color:var(--dark)}
+.it{display:grid;grid-template-columns:38px 62px 1fr;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid #1b2dae;background:var(--navy);position:relative}
+.it .dh{height:46px;border-radius:8px;border:2px solid var(--edge);touch-action:none;cursor:grab;background:repeating-linear-gradient(#9fb0ff 0 3px,transparent 3px 9px) center/18px 21px no-repeat}
+.it .num{text-align:center;font-weight:700;color:var(--yel);padding:8px 2px;font-size:26px}
+.it.drag{z-index:5;background:#0a1170;box-shadow:0 8px 24px #000a;outline:2px solid var(--yel)}
+.it.tgt{outline:3px dashed var(--yel)}
+.it .acts{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.it .acts button{min-height:44px;font-size:18px}
+.po{grid-column:1/-1;font-size:18px}
+.po summary{cursor:pointer;min-height:40px;display:flex;align-items:center;color:var(--yel)}
+.po label{display:flex;gap:10px;align-items:center;margin:6px 0}
+.po label select{flex:1}
+.it small{grid-column:1/-1;font-size:16px;opacity:.9}.it small.bad{color:#ff9b8a;opacity:1}
+details summary{cursor:pointer;min-height:44px;display:flex;align-items:center;color:var(--yel)}
+#npd{font-size:36px;text-align:center;min-height:44px;color:var(--yel);letter-spacing:.12em}
+button.np{min-height:60px;font-size:28px}
+#logv{gap:8px}
+.lr{font-size:17px;line-height:1.2;padding:8px 0;border-bottom:1px solid #1b2dae}
+.lr b{color:#ffcf6b}.lr.guide b,.lr.play b,.lr.add b{color:#ff9b8a}
+.lr small{display:block;opacity:.8;word-break:break-all}
+#net{background:#7a1f1f;color:#fff;padding:8px 12px;border-radius:6px;font-size:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{min-height:40px;padding:4px 14px;font-size:18px}
+.chips button.on{background:var(--yel);color:var(--dark);border-color:var(--yel)}
+p.hint{font-size:17px;opacity:.9}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>YourTube remote</h1><span id="status"></span></header>
+
+  <section id="pair" class="sec" hidden>
+    <p>Enter the 6-character code shown on the TV, on its start screen or in Settings.</p>
+    <input id="code" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="Code" aria-label="TV code">
+    <button id="connect">Connect</button>
+    <p id="pmsg" role="status"></p>
+  </section>
+
+  <section id="app" class="sec" hidden>
+    <div id="now"><div id="nl" class="lg"></div><div class="t"><b id="nn"></b><strong id="nc"></strong><span id="nt"></span></div></div>
+    <div id="prog" hidden><i id="pb"></i></div>
+    <div id="pt"></div>
+    <div id="toast" role="status"></div>
+    <div id="net" hidden>The TV has no internet connection. YouTube channels cannot play; local channels still can.</div>
+    <div class="g3 tabs"><button id="tR" class="on">Remote</button><button id="tG">Guide</button><button id="tS">Settings</button></div>
+
+    <div id="pRemote" class="sec">
+      <div class="g2"><button id="up" class="big">Channel up</button><button id="down" class="big">Channel down</button></div>
+      <div class="g2"><button id="guide">Guide</button><button id="info">Info</button></div>
+      <div class="dp"><svg id="dpad" viewBox="0 0 240 240" role="group" aria-label="Directional pad"></svg></div>
+      <div id="npd" aria-live="polite"></div>
+      <div class="g3" id="npk"></div>
+      <label class="v">Volume <input id="vol" type="range" min="0" max="100" aria-label="Volume"></label>
+      <div class="g3"><button id="tm">Text smaller</button><button id="tp">Text larger</button><button id="cc">Captions</button></div>
+    </div>
+
+    <div id="pGuide" class="sec" hidden><div id="gchips" class="chips"></div><div id="glist" class="sec"></div></div>
+
+    <div id="pSet" class="sec" hidden>
+      <h2>Add a channel</h2>
+      <input id="an" placeholder="Channel name (optional)" aria-label="New channel name">
+      <input id="as" placeholder="Paste a channel or playlist URL" aria-label="Channel or playlist URL" inputmode="url">
+      <button id="add">Add channel</button>
+      <button id="fbtn">Add a local folder (USB drive or the Pi)</button>
+      <div id="fbp" class="sec" hidden>
+        <p id="fbpath" class="hint"></p>
+        <div id="fbl" class="sec"></div>
+        <div class="g2"><button id="fbuse">Use this folder</button><button id="fbx">Cancel</button></div>
+      </div>
+      <h2>Channels</h2>
+      <div id="slist" class="sec"></div>
+      <h2>Options</h2>
+      <label class="opt"><input id="seek" type="checkbox"> Join videos part-way through</label>
+      <label class="opt"><input id="ccs" type="checkbox"> Show captions</label>
+      <div class="g2"><select id="slm" aria-label="Sleep timer">
+        <option value="0">Sleep timer: off</option><option value="15">15 minutes</option><option value="30">30 minutes</option>
+        <option value="60">1 hour</option><option value="90">90 minutes</option><option value="120">2 hours</option></select>
+        <button id="sl">Set timer</button></div>
+      <p id="slt" class="hint"></p>
+      <h2>Problems and skipped items</h2>
+      <div id="logv" class="sec"></div>
+      <button id="logc">Clear log</button>
+      <h2>Guide</h2>
+      <button id="refresh">Refresh guide now</button>
+      <input id="key" placeholder="YouTube API key (optional)" aria-label="YouTube API key" autocomplete="off">
+      <button id="keys">Save API key on the TV</button>
+      <p class="hint">The key is sent to the TV only and is stored there. It makes the guide use YouTube's official data.</p>
+      <div id="piset" class="sec" hidden>
+        <h2>Raspberry Pi</h2>
+        <label class="opt"><input id="pBoot" type="checkbox"> Start YourTube when the Pi boots</label>
+        <label class="opt"><input id="pTv" type="checkbox"> Turn the TV on and switch input at start</label>
+        <label class="opt"><input id="pWd" type="checkbox"> Restart automatically if it crashes</label>
+      </div>
+      <h2>TV</h2>
+      <button id="open">Open settings on the TV</button>
+      <button id="reset">Restore default channels</button>
+      <button id="exit">Exit YourTube on the TV</button>
+      <button id="unpair">Use a different TV</button>
+      <p class="hint">Changes are sent to the TV and show up after a second or two.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),K='yourtube.rc';
+let code='',st=null,age=null,tm,tt,lastmid=-1,sigS='',lastTs=0,recvAt=0,np='',hold=0,want=null;
+try{code=localStorage.getItem(K)||''}catch(e){}
+const q=new URLSearchParams(location.search).get('c');
+if(q&&/^[A-Za-z0-9]{6}$/.test(q))code=q.toUpperCase();
+const hm=t=>new Date(t*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+
+async function api(a,body){
+  const r=await fetch('remote.php?c='+code+'&a='+a,{method:body?'POST':'GET',body:body?JSON.stringify(body):undefined,cache:'no-store'});
+  return r.json();
+}
+function enter(){try{localStorage.setItem(K,code)}catch(e){}$('pair').hidden=true;$('app').hidden=false;loop()}
+function unpair(msg){code='';st=null;clearTimeout(tm);try{localStorage.removeItem(K)}catch(e){}$('app').hidden=true;$('pair').hidden=false;$('pmsg').textContent=msg||''}
+async function refresh(){
+  if(!code)return;
+  try{
+    const r=await api('state');
+    if(r.error==='nocode'||r.error==='badcode'){unpair('No TV found with that code. Check the code shown on the TV.');return}
+    let ns=r.state;
+    if(want&&ns){
+      const got=JSON.stringify((ns.channels||[]).map(c=>c.n));
+      if(got===want)want=null;
+      else if(Date.now()<hold&&st&&st.channels)ns.channels=st.channels;
+      else{want=null;toast('The TV did not apply that change. Make sure index.html and remote.php on the TV are the latest versions.')}
+    }
+    st=ns;age=r.tv_age;
+    if(st&&st.ts!==lastTs){lastTs=st.ts;recvAt=Date.now()}
+    draw();
+  }catch(e){$('status').textContent='Cannot reach the server';$('status').className='bad'}
+}
+function loop(){clearTimeout(tm);if(!document.hidden)refresh();tm=setTimeout(loop,2500)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&code)loop()});
+async function send(cmd){
+  if(navigator.vibrate)navigator.vibrate(8);
+  try{await api('cmd',{cmd})}catch(e){toast('Could not reach the server.');return}
+  setTimeout(refresh,1200);setTimeout(refresh,3000);
+}
+const key=k=>send({t:'key',k,v:k});
+function toast(t){const e=$('toast');e.textContent=t;clearTimeout(tt);tt=setTimeout(()=>e.textContent='',7000)}
+function setLogo(el,url,name){el.style.backgroundImage=url?'url("'+String(url).replace(/"/g,'%22')+'")':'none';el.textContent=url?'':((name||'?')[0]||'?').toUpperCase()}
+const mins=s=>s>=3600?Math.floor(s/3600)+' h '+Math.round(s%3600/60)+' min':Math.max(1,Math.round(s/60))+' min';
+
+function draw(){
+  const ok=age!=null&&age<=25;
+  $('status').textContent=ok?'TV connected':'TV not responding';$('status').className=ok?'ok':'bad';
+  if(!st){$('nc').textContent='Waiting for the TV...';return}
+  const n=st.channels||[],cur=st.cur|0,c=n[cur-1];
+  setLogo($('nl'),c&&c.logo,c&&c.n);$('nl').style.visibility=c?'visible':'hidden';
+  $('nn').textContent=cur+1;
+  $('nc').textContent=cur?(c?c.n:''):'Channel guide';
+  $('nt').textContent=!st.on?'Press Turn on at the TV to start':(c?c.now||'':'');
+  if(document.activeElement!==$('vol'))$('vol').value=st.vol;
+  $('cc').textContent='Captions: '+(st.cc?'on':'off');
+  $('net').hidden=st.online!==false;
+  $('ccs').checked=!!st.cc;$('seek').checked=!!st.seek;
+  $('slt').textContent=st.sleepAt?'The TV will close at '+hm(st.sleepAt/1000)+'.':'';
+  drawGuide(n,cur);
+  drawLog(st.log||[]);
+  const sig=JSON.stringify(n.map(x=>[x.n,x.logo,x.cnt,x.upd,x.err,x.o,x.g,x.hide]));
+  if(sig!==sigS&&!$('slist').contains(document.activeElement)){sigS=sig;drawSet(n)}
+  if(st.mid!==lastmid){if(lastmid!==-1&&st.msg)toast(st.msg);lastmid=st.mid}
+  prog();
+}
+function prog(){
+  if(!st)return;
+  const p=st.prog,c=(st.channels||[])[(st.cur|0)-1];
+  if(!p||!c){$('prog').hidden=true;$('pt').textContent='';return}
+  const len=(p.e-p.s)/1000,el=((st.ts-p.s)+(st.paused?0:Date.now()-recvAt))/1000;
+  const pct=Math.max(0,Math.min(100,el/len*100));
+  $('prog').hidden=false;$('pb').style.width=pct+'%';
+  $('pt').textContent=(st.paused?'Paused. ':'')+mins(Math.max(0,len-el))+' left'+(c.next?'. Next: '+c.next:'');
+}
+setInterval(prog,1000);
+
+let logSig='';
+function drawLog(log){
+  const sig=JSON.stringify(log);if(sig===logSig)return;logSig=sig;
+  const box=$('logv');box.innerHTML='';
+  if(!log.length){box.textContent='Nothing to report. Skipped files and problems will be listed here.';return}
+  const kinds={skip:'Skipped',guide:'Guide',play:'Playback',add:'Add channel'};
+  log.forEach(x=>{
+    const d=document.createElement('div');d.className='lr '+x.k;
+    d.innerHTML='<b></b> <span></span><small></small>';
+    d.children[0].textContent=(kinds[x.k]||x.k)+(x.ch?' ('+x.ch+')':'');
+    d.children[1].textContent=x.m;
+    d.children[2].textContent=new Date(x.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+(x.n>1?', seen '+x.n+' times':'')+(x.d?'. '+x.d:'');
+    box.appendChild(d);
+  });
+}
+function drawChips(groups,gf){
+  const box=$('gchips');box.innerHTML='';
+  if(!groups.length)return;
+  ['',...groups].forEach(g=>{const b=document.createElement('button');b.textContent=g||'All';b.className=(gf||'')===g?'on':'';b.onclick=()=>send({t:'gf',v:g});box.appendChild(b)});
+}
+function drawGuide(n,cur){
+  const box=$('glist');box.innerHTML='';
+  drawChips(st.groups||[],st.gf||'');
+  if(!n.length){box.textContent='No channels yet. Add one in Settings.';return}
+  n.forEach((c,i)=>{
+    if(c.hide||(st.gf&&(c.g||'')!==st.gf))return;
+    const b=document.createElement('button');b.className='row'+(i+1===cur?' on':'');
+    b.innerHTML='<div class="lg"></div><div class="t"><b></b><small></small><small></small></div>';
+    setLogo(b.children[0],c.logo,c.n);
+    b.querySelector('b').textContent=(i+2)+'  '+c.n;
+    const sm=b.querySelectorAll('small');
+    sm[0].textContent=c.now?c.now+(c.left?' ('+mins(c.left)+' left)':''):'Loading...';
+    sm[1].textContent=c.next?'Next: '+c.next:'';
+    b.onclick=()=>send({t:'tune',i:i+1});box.appendChild(b);
+  });
+}
+// Move channel i to channel number num. The channel already there swaps into i's old place.
+function moveChan(i,num){
+  const n=(st&&st.channels)||[],N=n.length;
+  if(!Number.isInteger(num)||num<2||num>N+1){toast('Channel numbers go from 2 to '+(N+1)+'. Channel 1 is the guide.');return false}
+  const j=num-2;if(j===i)return false;
+  const a=n[i],b=n[j];
+  [n[i],n[j]]=[n[j],n[i]];                       // show the new order straight away
+  want=JSON.stringify(n.map(c=>c.n));hold=Date.now()+7000;
+  send({t:'to',i,v:num});
+  toast(a.n+' is now channel '+num+', and '+b.n+' moved to channel '+(i+2)+'.');
+  sigS='';draw();
+  return true;
+}
+// Drag a row by its handle and drop it on another row to swap them.
+function dragStart(e,i,row){
+  e.preventDefault();
+  const h=e.currentTarget,box=$('slist');h.setPointerCapture(e.pointerId);
+  const mids=[...box.children].map(r=>{const b=r.getBoundingClientRect();return (b.top+b.bottom)/2+scrollY});
+  const y0=e.clientY,s0=scrollY;let lastY=e.clientY,tgt=i;
+  row.classList.add('drag');
+  const upd=()=>{
+    row.style.transform='translateY('+((lastY-y0)+(scrollY-s0))+'px)';
+    const py=lastY+scrollY;let best=0,bd=1e9;
+    mids.forEach((m,k)=>{const d=Math.abs(py-m);if(d<bd){bd=d;best=k}});
+    if(best!==tgt){[...box.children].forEach(r=>r.classList.remove('tgt'));tgt=best;if(best!==i)box.children[best].classList.add('tgt')}
+  };
+  const move=ev=>{lastY=ev.clientY;upd()};
+  const timer=setInterval(()=>{if(lastY<90)scrollBy(0,-14);else if(lastY>innerHeight-90)scrollBy(0,14);else return;upd()},16);
+  const end=ev=>{
+    clearInterval(timer);
+    h.removeEventListener('pointermove',move);h.removeEventListener('pointerup',end);h.removeEventListener('pointercancel',end);
+    row.classList.remove('drag');row.style.transform='';[...box.children].forEach(r=>r.classList.remove('tgt'));
+    if(ev.type==='pointerup'&&tgt!==i)moveChan(i,tgt+2);
+  };
+  h.addEventListener('pointermove',move);h.addEventListener('pointerup',end);h.addEventListener('pointercancel',end);
+}
+const ORD={channel:['Newest first','Oldest first'],playlist:['Playlist order','Reverse playlist order'],local:['File name order','Reverse file order']};
+const MINS=[0,60,180,300,600,1200,1800],COUNTS=[10,25,50,100,200,500],poOpen={};
+function fillOpts(d,c,i){
+  const o=c.o||{},k=c.kind||'channel',opt=(sel,val,txt)=>{const e=document.createElement('option');e.value=val;e.textContent=txt;sel.appendChild(e)};
+  const [so,sm,sc]=d.querySelectorAll('.po select');
+  [['default',ORD[k][0]],['reverse',ORD[k][1]],['shuffle','Shuffled'],['alpha','A to Z by title']].forEach(([v,t])=>opt(so,v,t));
+  MINS.forEach(m=>opt(sm,m,m?(m/60)+' minutes':'Any length'));
+  COUNTS.forEach(n=>opt(sc,n,n+(k==='local'?' files':' videos')));
+  so.value=o.order||'default';sm.value=o.min!=null?o.min:(k==='local'?0:180);sc.value=o.count!=null?o.count:(k==='channel'?50:500);
+  so.onchange=()=>send({t:'opt',i,k:'order',v:so.value});
+  sm.onchange=()=>send({t:'opt',i,k:'min',v:+sm.value});
+  sc.onchange=()=>send({t:'opt',i,k:'count',v:+sc.value});
+  const gi=d.querySelector('.po input[data-k="g"]'),hb=d.querySelector('.po input[data-k="hide"]');
+  gi.value=c.g||'';gi.onchange=()=>send({t:'grp',i,v:gi.value});
+  hb.checked=!!c.hide;hb.onchange=()=>send({t:'hide',i,v:hb.checked});
+  const det=d.querySelector('.po');det.open=!!poOpen[c.n];det.ontoggle=()=>{poOpen[c.n]=det.open};
+}
+function drawSet(n){
+  const box=$('slist');box.innerHTML='';
+  n.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='it';
+    d.innerHTML='<span class="dh" role="button" aria-label="Drag to reorder"></span><input class="num" type="text" inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" aria-label="Channel number"><input class="nm" aria-label="Channel name"><small></small><details class="po"><summary>Programming options</summary><label>Order <select data-k="order"></select></label><label>Minimum length <select data-k="min"></select></label><label>Number of videos <select data-k="count"></select></label><label>Group <input data-k="g" placeholder="News, Kids, Music..."></label><label class="opt"><input type="checkbox" data-k="hide"> Hide this channel from the guide</label></details><div class="acts"><button>Up</button><button>Down</button><button>Remove</button></div>';
+    d.querySelector('.dh').onpointerdown=e=>dragStart(e,i,d);
+    // type a number: the channel moves there once you finish typing (or press Done / tap away)
+    const num=d.querySelector('.num');let t,done=false;
+    num.value=i+2;
+    const commit=()=>{
+      clearTimeout(t);if(done)return;
+      const v=num.value.trim();
+      if(v===''||+v===i+2){num.value=i+2;return}
+      done=true;num.blur();
+      if(!moveChan(i,+v)){done=false;num.value=i+2}
+    };
+    num.onfocus=()=>num.select();
+    num.oninput=()=>{clearTimeout(t);t=setTimeout(commit,1400)};
+    num.onchange=commit;
+    num.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();commit()}};
+    const inp=d.querySelector('.nm');inp.value=c.n;inp.onchange=()=>send({t:'ren',i,n:inp.value});
+    fillOpts(d,c,i);
+    const sm=d.querySelector('small');
+    sm.textContent=c.err?'Problem: '+c.err:(c.cnt?c.cnt+' videos, updated '+hm(c.upd):'Waiting for the guide to load');
+    if(c.err)sm.className='bad';
+    if(c.hide)sm.textContent='(hidden) '+sm.textContent;
+    const [u,dn,rm]=d.querySelectorAll('button');
+    u.onclick=()=>send({t:'mv',i,d:-1});dn.onclick=()=>send({t:'mv',i,d:1});
+    rm.onclick=()=>{if(confirm('Remove '+c.n+'?'))send({t:'rm',i})};
+    box.appendChild(d);
+  });
+}
+
+const on=(id,f)=>$(id).onclick=f;
+on('connect',()=>{const v=$('code').value.trim().toUpperCase();if(!/^[A-Z0-9]{6}$/.test(v)){$('pmsg').textContent='The code is 6 letters and numbers.';return}code=v;$('pmsg').textContent='Connecting...';enter()});
+const tab=t=>{[['tR','pRemote','R'],['tG','pGuide','G'],['tS','pSet','S']].forEach(([b,p,k])=>{$(b).className=k===t?'on':'';$(p).hidden=k!==t})};
+on('tR',()=>tab('R'));on('tG',()=>tab('G'));on('tS',()=>{tab('S');piLoad()});
+on('up',()=>send({t:'up'}));on('down',()=>send({t:'down'}));
+on('guide',()=>send({t:'guide'}));on('info',()=>key('info'));
+$('vol').onchange=e=>send({t:'vol',v:+e.target.value});
+on('tm',()=>send({t:'scale',d:-1}));on('tp',()=>send({t:'scale',d:1}));
+on('cc',()=>send({t:'cc',v:!(st&&st.cc)}));
+$('ccs').onchange=e=>send({t:'cc',v:e.target.checked});
+$('seek').onchange=e=>send({t:'seek',v:e.target.checked});
+on('add',()=>{const src=$('as').value.trim();if(!src){toast('Paste a channel or playlist link first.');return}send({t:'add',src,name:$('an').value});toast('Sent to the TV...');$('as').value=$('an').value=''});
+on('sl',()=>send({t:'sleep',v:+$('slm').value}));
+on('logc',()=>{if(confirm('Clear the problems log?'))send({t:'clearlog'})});
+on('refresh',()=>{send({t:'refresh'});toast('Refreshing the guide...')});
+on('keys',()=>{const v=$('key').value.trim();if(!v){toast('Paste the API key first.');return}send({t:'apikey',v});$('key').value='';toast('Key sent to the TV.')});
+on('open',()=>send({t:'settings'}));
+on('reset',()=>{if(confirm('Replace the channel list with the defaults?'))send({t:'reset'})});
+on('exit',()=>{if(confirm('Close YourTube on the TV?'))send({t:'exit'})});
+on('unpair',()=>unpair(''));
+
+async function sys(a,k,v){
+  const r=await fetch('system.php?a='+a+(k?'&k='+k+'&v='+v:''),{method:(a==='status'||a==='check')?'GET':'POST',cache:'no-store'});
+  return r.json();
+}
+async function piLoad(){
+  try{
+    const r=await sys('status');if(!r.ok)throw 0;
+    $('piset').hidden=false;$('pBoot').checked=!!r.boot;$('pTv').checked=!!r.tvon;$('pTv').disabled=!r.cec;$('pWd').checked=!!r.watchdog;
+  }catch(e){$('piset').hidden=true}
+}
+[['pBoot','boot'],['pTv','tvon'],['pWd','watchdog']].forEach(([id,k])=>{$(id).onchange=async e=>{try{await sys('set',k,e.target.checked?1:0)}catch(x){}piLoad()}});
+// browse folders on the Pi or a USB drive, then ask the TV to add one as a channel
+async function fbOpen(p){
+  $('fbp').hidden=false;const L=$('fbl');L.textContent='Loading...';
+  try{
+    const r=await fetch('local.php?a=ls&p='+encodeURIComponent(p)).then(r=>r.json());
+    if(!r.ok){L.textContent=r.error||'Cannot open that folder.';return}
+    $('fbpath').textContent=r.path?r.path+' ('+(r.videos||0)+' videos here)':'Drives and media folders';
+    $('fbuse').hidden=!r.path;
+    $('fbuse').onclick=()=>{$('fbp').hidden=true;send({t:'add',src:r.path,name:''});toast('Sent to the TV...')};
+    L.innerHTML='';
+    const add=(label,path)=>{const b=document.createElement('button');b.textContent=label;b.style.textAlign='left';b.onclick=()=>fbOpen(path);L.appendChild(b)};
+    if(r.path)add('.. (up one level)',r.parent||'');
+    r.dirs.forEach(d=>add(d.n+(d.v?'  ('+d.v+' videos)':''),d.p));
+    if(r.error){const m=document.createElement('p');m.textContent=r.error;L.appendChild(m)}
+  }catch(e){L.textContent='Local folders only work when YourTube runs on the Raspberry Pi.'}
+}
+on('fbtn',()=>fbOpen(''));on('fbx',()=>{$('fbp').hidden=true});
+
+// round D-pad: four arrow segments around a centred OK button
+(function(){
+  const NS='http://www.w3.org/2000/svg',svg=$('dpad'),c=120,R=116,r=46,gap=2;
+  const pt=(rad,deg)=>[c+rad*Math.cos(deg*Math.PI/180),c+rad*Math.sin(deg*Math.PI/180)];
+  const el=(tag,at)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);return e};
+  const wire=(g,fn)=>{g.onclick=fn;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}}};
+  [['Up',-90,'up'],['Right',0,'right'],['Down',90,'down'],['Left',180,'left']].forEach(([label,mid,k])=>{
+    const [x0,y0]=pt(R,mid-45+gap),[x1,y1]=pt(R,mid+45-gap),[x2,y2]=pt(r,mid+45-gap),[x3,y3]=pt(r,mid-45+gap);
+    const g=el('g',{class:'w',role:'button',tabindex:0,'aria-label':label});
+    g.appendChild(el('path',{d:'M'+x0+' '+y0+'A'+R+' '+R+' 0 0 1 '+x1+' '+y1+'L'+x2+' '+y2+'A'+r+' '+r+' 0 0 0 '+x3+' '+y3+'Z'}));
+    const [tx,ty]=pt(82,mid);
+    g.appendChild(el('path',{class:'a',d:'M16 0L-10 -15L-10 15Z',transform:'translate('+tx+' '+ty+') rotate('+mid+')'}));
+    wire(g,()=>key(k));svg.appendChild(g);
+  });
+  const ok=el('g',{class:'w ok',role:'button',tabindex:0,'aria-label':'OK'});
+  ok.appendChild(el('circle',{cx:c,cy:c,r:r-5}));
+  const t=el('text',{x:c,y:c+14,'text-anchor':'middle'});t.textContent='OK';ok.appendChild(t);
+  wire(ok,()=>key('ok'));svg.appendChild(ok);
+})();
+
+// number pad: tap the digits, then Go (or wait a moment and it goes by itself). 1 is the guide, your channels start at 2.
+let npT;
+const npGo=()=>{
+  clearTimeout(npT);const n=+np;np='';$('npd').textContent='';
+  if(!n)return;
+  if(n>=1&&n<=((st&&st.channels||[]).length+1))send({t:'tune',i:n-1});else toast('That channel does not exist.');
+};
+['1','2','3','4','5','6','7','8','9','Clear','0','Go'].forEach(k=>{
+  const b=document.createElement('button');b.textContent=k;b.className='np';
+  b.onclick=()=>{
+    if(navigator.vibrate)navigator.vibrate(8);
+    clearTimeout(npT);
+    if(k==='Clear'){np='';$('npd').textContent='';return}
+    if(k==='Go'){npGo();return}
+    if(np.length<3)np+=k;
+    $('npd').textContent=np;npT=setTimeout(npGo,1600);
+  };
+  $('npk').appendChild(b);
+});
+
+if(code)enter();else $('pair').hidden=false;
+</script>
+</body>
+</html>

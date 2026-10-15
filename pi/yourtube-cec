@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# Turns TV remote buttons (HDMI-CEC) into keyboard keys for YourTube.
+import selectors, sys, time
+from evdev import InputDevice, UInput, ecodes as e, list_devices
+
+def log(*a): print(time.strftime('%H:%M:%S'), *a, flush=True)
+def code(n): return getattr(e, n, None)
+PASS = [e.KEY_UP, e.KEY_DOWN, e.KEY_LEFT, e.KEY_RIGHT, e.KEY_ENTER] + [getattr(e, 'KEY_%d' % i) for i in range(10)]
+NAMES = {'KEY_OK': 'KEY_ENTER', 'KEY_SELECT': 'KEY_ENTER', 'KEY_BACK': 'KEY_ESC', 'KEY_EXIT': 'KEY_ESC',
+         'KEY_MENU': 'KEY_S', 'KEY_INFO': 'KEY_I', 'KEY_EPG': 'KEY_G', 'KEY_RED': 'KEY_G', 'KEY_GREEN': 'KEY_S',
+         'KEY_SUBTITLE': 'KEY_C', 'KEY_YELLOW': 'KEY_MINUS', 'KEY_BLUE': 'KEY_EQUAL', 'KEY_CHANNELUP': 'KEY_PAGEUP',
+         'KEY_CHANNELDOWN': 'KEY_PAGEDOWN', 'KEY_PLAYPAUSE': 'KEY_M', 'KEY_PLAY': 'KEY_M', 'KEY_PAUSE': 'KEY_M'}
+MAP = {code(a): code(b) for a, b in NAMES.items() if code(a) and code(b)}
+MAP.update({k: k for k in PASS})
+
+try:
+    ui = UInput({e.EV_KEY: list(range(1, 120))}, name='YourTube remote')
+except Exception as ex:
+    log('Cannot create the virtual keyboard:', ex)
+    sys.exit(1)
+
+warned = False
+while True:
+    sel = selectors.DefaultSelector()
+    for path in list_devices():
+        try:
+            d = InputDevice(path)
+            log('input device', path, d.name)
+            if 'cec' in d.name.lower() or 'hdmi' in d.name.lower():
+                d.grab(); sel.register(d, selectors.EVENT_READ)
+                log('listening to', d.name)
+        except OSError as ex:
+            log('cannot use', path, ex)
+    if not sel.get_map():
+        if not warned: log('no CEC remote device found yet, retrying'); warned = True
+        time.sleep(5); continue
+    warned = False
+    try:
+        while True:
+            for key, _ in sel.select():
+                for ev in key.fileobj.read():
+                    if ev.type == e.EV_KEY:
+                        log('remote key', e.KEY.get(ev.code, ev.code), ev.value, 'mapped' if ev.code in MAP else 'ignored')
+                        if ev.code in MAP:
+                            ui.write(e.EV_KEY, MAP[ev.code], ev.value); ui.syn()
+    except OSError as ex:
+        log('device error', ex); time.sleep(2)

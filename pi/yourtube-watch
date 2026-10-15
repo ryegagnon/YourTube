@@ -1,0 +1,42 @@
+#!/bin/bash
+# Restarts YourTube if the server, the browser or the page stops responding.
+PORT="${YOURTUBE_PORT:-1984}"
+APP="${YOURTUBE_DIR:-$HOME/yourtube}"
+CFG="$HOME/.config/yourtube/settings.env"
+DIR="$HOME/.cache/yourtube"; STOP="$DIR/stopped"; LOG="$DIR/watchdog.log"
+mkdir -p "$DIR"
+log() { echo "$(date '+%F %T') $*" >> "$LOG"; [ "$(wc -l < "$LOG")" -gt 400 ] && tail -n 150 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"; }
+
+# The TV page reports in to the server every few seconds; this is the newest report.
+page_age() {
+  local newest=0 f t
+  for f in "$APP"/rooms/??????.json; do
+    [ -f "$f" ] || continue
+    t=$(grep -o '"tv":[0-9]*' "$f" | head -1 | cut -d: -f2)
+    [ -n "$t" ] && [ "$t" -gt "$newest" ] && newest=$t
+  done
+  [ "$newest" -eq 0 ] && echo 999999 || echo $(( $(date +%s) - newest ))
+}
+
+sleep 120   # let the app finish starting
+bad=0
+while :; do
+  [ -f "$STOP" ] && exit 0
+  YT_WATCHDOG=1; [ -f "$CFG" ] && . "$CFG"
+  if [ "$YT_WATCHDOG" = 0 ]; then sleep 30; continue; fi
+  why=""
+  curl -fsS -m 5 -o /dev/null "http://127.0.0.1:$PORT/index.html" || why="the server is not answering"
+  [ -z "$why" ] && ! pgrep -f yourtube-browser >/dev/null && why="the browser is not running"
+  [ -z "$why" ] && [ "$(page_age)" -gt 240 ] && why="the page stopped reporting in"
+  if [ -n "$why" ]; then bad=$((bad+1)); else bad=0; fi
+  if [ "$bad" -ge 2 ]; then
+    log "restarting: $why"
+    bad=0
+    pkill -f yourtube-browser; pkill -f "php -S 0.0.0.0:$PORT"
+    sleep 3
+    setsid nohup "$HOME/.local/bin/yourtube-start" >/dev/null 2>&1 &
+    sleep 120
+    continue
+  fi
+  sleep 30
+done

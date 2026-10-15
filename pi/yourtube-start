@@ -1,0 +1,35 @@
+#!/bin/bash
+# Starts the YourTube server (if it is not already running) and opens it full screen.
+PORT="${YOURTUBE_PORT:-1984}"
+APP="${YOURTUBE_DIR:-$HOME/yourtube}"
+CFG="$HOME/.config/yourtube/settings.env"
+[ -f "$CFG" ] && . "$CFG"
+BROWSER="$(command -v chromium || command -v chromium-browser)"
+mkdir -p "$HOME/.cache/yourtube"; rm -f "$HOME/.cache/yourtube/stopped"
+
+# Register as an HDMI-CEC playback device so the TV remote reaches the Pi
+if command -v cec-ctl >/dev/null; then
+  for d in /dev/cec*; do [ -e "$d" ] && cec-ctl -d "$d" --playback >/dev/null 2>&1; done
+  # Optionally turn the TV on and switch it to this input
+  if [ "${YT_TVON:-0}" = 1 ]; then
+    for d in /dev/cec*; do
+      [ -e "$d" ] || continue
+      pa=$(cec-ctl -d "$d" 2>/dev/null | awk '/Physical Address/{print $4; exit}')
+      if [ -n "$pa" ] && [ "$pa" != "f.f.f.f" ]; then
+        cec-ctl -d "$d" --to 0 --image-view-on >/dev/null 2>&1
+        cec-ctl -d "$d" --active-source phys-addr="$pa" >/dev/null 2>&1
+      fi
+    done
+  fi
+fi
+pgrep -f yourtube-cec >/dev/null || setsid nohup python3 "$HOME/.local/bin/yourtube-cec" >>/tmp/yourtube-cec.log 2>&1 &
+pgrep -f yourtube-watch >/dev/null || setsid nohup "$HOME/.local/bin/yourtube-watch" >/dev/null 2>&1 &
+
+if ! ss -ltn | grep -q ":$PORT "; then
+  PHP_CLI_SERVER_WORKERS=8 setsid nohup php -S "0.0.0.0:$PORT" -t "$APP" >/dev/null 2>&1 &
+  for _ in $(seq 1 20); do ss -ltn | grep -q ":$PORT " && break; sleep 0.25; done
+fi
+
+exec "$BROWSER" --user-data-dir="$HOME/.config/yourtube-browser" --kiosk --no-first-run \
+  --password-store=basic --autoplay-policy=no-user-gesture-required --noerrdialogs --disable-infobars \
+  "http://$(hostname).local:$PORT/#kiosk"

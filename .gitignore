@@ -1,0 +1,9 @@
+# Runtime data created by remote.php and schedule.php
+web/rooms/
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+__pycache__/

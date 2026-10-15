@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>YourTube</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--navy:#050a55;--blue:#1b2dae;--blue2:#2740d6;--edge:#4a5df0;--yel:#ffe23a;--ink:#f3f5ff;--dark:#0a0f4a;--s:1.5;--lw:calc(230px*var(--s))}
+html,body{height:100%;background:#000;color:var(--ink);font:500 calc(18px*var(--s)) 'Barlow Condensed','Arial Narrow',Arial,sans-serif;overflow:hidden}
+body.idle{cursor:none}
+#stage,#shield{position:fixed;inset:0}
+#stage iframe{width:100%;height:100%;border:0;pointer-events:none}
+#shield{z-index:2}
+#lv{position:fixed;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:1}
+#blip{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;background:repeating-linear-gradient(0deg,#fff3 0 2px,#0009 2px 4px)}
+#blip.go{animation:bl .35s}
+@keyframes bl{from{opacity:1}to{opacity:0}}
+button{font:inherit;font-size:calc(18px*var(--s));padding:8px 16px;background:var(--blue);color:#fff;border:2px solid var(--edge);border-radius:4px;cursor:pointer}
+button:hover,button:focus-visible{background:var(--yel);color:var(--dark);outline:none}
+input{font:inherit;padding:8px;background:var(--navy);color:#fff;border:2px solid var(--edge);border-radius:4px;min-width:0}
+input:focus-visible{outline:2px solid var(--yel)}
+
+#guide{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;background:linear-gradient(#0a1170,#17269e 45%,#0a1170)}
+#guide[hidden]{display:none}
+#guide header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 28px;background:var(--navy);border-bottom:4px solid var(--yel)}
+h1{font-size:calc(34px*var(--s));font-weight:700;color:var(--yel)}
+#clk{font-size:calc(26px*var(--s))}
+#ruler{display:grid;grid-template-columns:var(--lw) 1fr;background:var(--dark);border-bottom:2px solid var(--edge);font-size:calc(22px*var(--s));color:var(--yel)}
+#ruler .rt{position:relative;height:calc(36px*var(--s))}
+#ruler .rt span{position:absolute;top:calc(5px*var(--s));height:calc(26px*var(--s));line-height:calc(26px*var(--s));padding-left:10px;border-left:2px solid var(--edge)}
+#gridwrap{flex:1;position:relative;min-height:0;display:flex}
+#rows{flex:1;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}
+#nowline{position:absolute;top:0;bottom:0;width:3px;background:#ff4a3d;z-index:2;pointer-events:none;left:calc(var(--lw) + (100% - var(--lw))*var(--p,0))}
+.grow{display:grid;grid-template-columns:var(--lw) 1fr;height:var(--rh,100px);scroll-snap-align:start;border-bottom:3px solid var(--navy)}
+.lab{display:flex;gap:12px;align-items:center;padding:0 14px;border:0;border-radius:0;background:var(--blue);text-align:left;font-size:calc(24px*var(--s));min-width:0}
+.lab b{font-size:calc(26px*var(--s));color:var(--yel)}
+.lg{flex:none;height:calc(var(--rh,100px)*.7);aspect-ratio:1;border-radius:50%;background:var(--dark) center/cover no-repeat;border:3px solid var(--yel);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:calc(var(--rh,100px)*.35);color:var(--yel)}
+#osd .lg{height:calc(64px*var(--s));font-size:calc(28px*var(--s))}
+.lt small{font-size:calc(14px*var(--s));opacity:.75;line-height:1}
+#gnet{background:#7a1f1f;color:#fff;padding:6px 24px;font-size:calc(18px*var(--s))}
+#gnet[hidden]{display:none}
+.oo input{width:calc(230px*var(--s))}
+.lt{display:flex;flex-direction:column;min-width:0;line-height:1.05}
+.grow.sel .lg{border-color:var(--dark)}
+.lab span{font-weight:700;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tl{position:relative;background:#0a1170;overflow:hidden}
+.blk{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 12px;min-width:0;overflow:hidden;border:0;border-left:3px solid var(--navy);border-radius:0;--bg1:rgba(27,45,174,.96);--bg2:rgba(27,45,174,.5);background:linear-gradient(90deg,var(--bg1) 38%,var(--bg2)),var(--th,none) center/cover no-repeat,var(--blue2);text-shadow:0 1px 3px #000a;text-align:left;font-size:calc(24px*var(--s));line-height:1.1}
+.blk strong{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.blk small{font-size:calc(18px*var(--s));opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk.live{--bg1:rgba(58,86,255,.96);--bg2:rgba(58,86,255,.5)}
+.blk:hover,.blk.live:hover,.lab:hover{background:var(--yel);color:var(--dark);text-shadow:none}
+.grow.sel .lab{background:var(--yel);color:var(--dark)}.grow.sel .lab b{color:var(--dark)}
+.grow.sel .blk{outline:3px solid var(--yel);outline-offset:-3px}
+.empty{padding:28px;font-size:calc(24px*var(--s))}
+#guide footer{background:var(--navy);overflow:hidden;white-space:nowrap;padding:10px 0;border-top:2px solid var(--edge)}
+#guide footer span{display:inline-block;padding-left:100%;animation:tk 45s linear infinite}
+@keyframes tk{to{transform:translateX(-100%)}}
+
+#osd{position:fixed;top:max(20px,env(safe-area-inset-top));left:24px;z-index:8;display:flex;gap:16px;align-items:center;padding:10px 20px;background:rgba(5,10,85,.88);border-left:6px solid var(--yel);opacity:0;transition:opacity .3s;pointer-events:none;max-width:calc(100vw - 48px)}
+#osd.show{opacity:1}
+#on_n{font-size:calc(56px*var(--s));font-weight:700;color:var(--yel);line-height:1}
+#osd div{min-width:0}
+#on_c{display:block;font-size:calc(28px*var(--s))}
+#on_x{display:block;font-size:calc(18px*var(--s));opacity:.9;max-width:55vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#on_p{display:block;height:calc(6px*var(--s));min-height:5px;background:#0a1170;margin-top:6px;border-radius:3px;overflow:hidden}
+#on_p[hidden]{display:none}
+#on_p i{display:block;height:100%;background:var(--yel);width:0}
+.oo{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px calc(72px*var(--s) + 8px)}
+.oo[hidden]{display:none}
+.oo button{font-size:calc(17px*var(--s))}
+#gwin{flex:1;text-align:center;font-size:calc(24px*var(--s))}
+#guide header button{padding:4px 14px;font-size:calc(18px*var(--s))}
+#on_t{display:block;font-size:calc(20px*var(--s));opacity:.9;max-width:55vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:30px 14px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,20,.9));opacity:0;pointer-events:none;transition:opacity .25s}
+#bar.show{opacity:1;pointer-events:auto}
+#vol{padding:0;width:110px;accent-color:var(--yel)}
+
+#power{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(circle at 50% 40%,#1b2dae,#050a55 70%)}
+#power[hidden]{display:none}
+#power h1{font-size:clamp(48px,12vw,110px);line-height:1}
+#power p{max-width:480px;font-size:calc(22px*var(--s))}
+#rinfo{font-size:calc(19px*var(--s));color:var(--yel);word-break:break-word}
+#pw{font-size:calc(28px*var(--s));padding:12px 40px;background:var(--yel);color:var(--dark);border-color:var(--yel)}
+#pw:hover,#pw:focus-visible{background:#fff}
+
+dialog{background:#0a1170;color:var(--ink);border:3px solid var(--yel);padding:22px;width:min(1600px,96vw);max-height:92vh;margin:auto;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+dialog h2{color:var(--yel);font-size:calc(28px*var(--s));margin-bottom:6px}
+dialog p,dialog label{font-size:calc(18px*var(--s));opacity:.95}
+.ch{display:grid;grid-template-columns:calc(72px*var(--s)) minmax(160px,1fr) minmax(0,2fr) auto auto auto auto;gap:8px;align-items:center;margin:6px 0}
+.ch .num{text-align:center;font-weight:700;color:var(--yel)}
+.ch input{min-width:0}
+.ch .cs{font-size:calc(17px*var(--s));line-height:1.15;opacity:.92}
+.ch .cs.bad{color:#ff9b8a;opacity:1}
+.ch button{padding:6px 10px;font-size:calc(16px*var(--s))}
+.add{display:grid;grid-template-columns:1fr 2fr auto auto;gap:8px;margin:14px 0 6px}
+#msg{min-height:24px;color:var(--yel)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:6px}
+#logv{max-height:45vh;overflow:auto}
+@media(max-width:900px){.ch{grid-template-columns:calc(72px*var(--s)) 1fr auto auto auto auto}.ch .cs{grid-column:1/-1;order:9}.cols{grid-template-columns:1fr}}
+.hint{opacity:.9;margin:6px 0;font-size:calc(18px*var(--s))}
+#fbl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:40vh;overflow:auto}
+#fbl button{text-align:left}
+.lr{margin:8px 0;font-size:calc(17px*var(--s));line-height:1.2}
+.lr b{color:#ffcf6b}
+.lr.guide b,.lr.play b,.lr.add b{color:#ff9b8a}
+.lr small{display:block;opacity:.8;word-break:break-all}
+.sh{color:var(--yel);margin-top:14px;font-size:calc(22px*var(--s))}
+.opt{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.opt input[type=text]{flex:1;min-width:200px}
+.foot{flex-wrap:wrap;display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+@media(max-width:560px){:root{--lw:calc(104px*var(--s))}.lt span,.lt small{display:none}.lab{font-size:calc(18px*var(--s));padding:0 8px;gap:6px}.lab b{font-size:calc(28px*var(--s))}.blk{font-size:calc(18px*var(--s));padding:4px 8px}#ruler{font-size:calc(16px*var(--s))}.add{grid-template-columns:1fr}#guide header{padding:14px}.ch{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){#blip.go{animation:none}#guide footer span{animation:none;padding:0}}
+</style>
+</head>
+<body>
+<div id="stage"><div id="yt"></div></div>
+<video id="lv" playsinline></video>
+<div id="shield"></div>
+<div id="blip"></div>
+
+<section id="guide" hidden>
+  <header><h1>Channel guide</h1><span id="gwin"></span><button id="gprev" hidden>Earlier</button><button id="gnow" hidden>Now</button><button id="gfilt" hidden></button><button id="gnext">Later</button><time id="clk"></time></header>
+  <div id="gnet" hidden></div>
+  <div id="ruler"><span></span><div class="rt" id="rt"></div></div>
+  <div id="gridwrap"><div id="rows"></div><div id="nowline"></div></div>
+  <footer><span>TV remote: up and down or the channel buttons change channel, left and right set the volume (in the guide they move through time), Info shows what is on and what is next, OK opens this guide and picks a channel, Back leaves it. Red opens the guide, green settings, yellow smaller text, blue larger text. Keyboard: G guide, S settings, M mute, F full screen, plus and minus text size. Type a channel number to jump to it.</span></footer>
+</section>
+
+<div id="osd"><div id="on_l" class="lg"></div><b id="on_n"></b><div><strong id="on_c"></strong><span id="on_t"></span><span id="on_x"></span><i id="on_p" hidden><i></i></i></div></div>
+
+<nav id="bar" aria-label="TV controls">
+  <button id="bGuide">Guide</button>
+  <button id="bDown">Channel down</button>
+  <button id="bUp">Channel up</button>
+  <button id="bMute">Mute</button>
+  <input id="vol" type="range" min="0" max="100" aria-label="Volume">
+  <button id="bSm">Text smaller</button>
+  <button id="bLg">Text larger</button>
+  <button id="bFull">Full screen</button>
+  <button id="bSet">Settings</button>
+</nav>
+
+<div id="power">
+  <h1>YourTube</h1>
+  <p>Your YouTube channels and playlists, running like live TV. Your lineup and volume are remembered next time.</p>
+  <p id="rinfo"></p>
+  <button id="pw">Turn on</button>
+</div>
+
+<dialog id="set">
+  <h2>Settings</h2>
+  <p>Channel 1 is always the guide. Your channels start at 2. Type a new number in a channel's first box to move it; the channel already there swaps into its old spot.</p>
+  <p id="rinfo2"></p>
+  <div id="list"></div>
+  <button id="arr">Arrange channels by group</button>
+  <div class="add">
+    <input id="an" placeholder="Channel name" aria-label="New channel name">
+    <input id="as" placeholder="Paste a channel or playlist URL" aria-label="Channel or playlist source">
+    <button id="add">Add channel</button>
+    <button id="fb">Browse folders (USB or Pi)</button>
+  </div>
+  <div id="fbp" hidden>
+    <div id="fbpath" class="hint"></div>
+    <div id="fbl"></div>
+    <div class="foot"><button id="fbuse">Use this folder</button><button id="fbx">Cancel</button></div>
+  </div>
+  <div id="msg" role="status"></div>
+  <p>Paste any YouTube channel link (like youtube.com/@name) or playlist link, then choose Add channel. Leave the name blank to use the channel's own name.</p>
+  <div class="cols">
+    <div class="col">
+      <h3 class="sh">Options</h3>
+      <div class="opt">Text size <button id="sm">Smaller</button><b id="sv"></b><button id="lg">Larger</button></div>
+      <label class="opt"><input id="cc" type="checkbox"> Show captions (subtitles)</label>
+      <label class="opt"><input id="seek" type="checkbox"> Join videos part-way through, like live TV</label>
+      <label class="opt"><input id="kdbg" type="checkbox"> Show remote key codes (for troubleshooting)</label>
+      <label class="opt">YouTube Data API key (optional: lets the guide read up to 50 video lengths per channel and look up @handles)
+        <input id="key" type="text" autocomplete="off" placeholder="Paste key here"></label>
+    </div>
+    <div class="col">
+      <h3 class="sh">Problems and skipped items</h3>
+      <div id="logv"></div>
+      <button id="logc">Clear log</button>
+    </div>
+  </div>
+  <div id="piset" hidden>
+    <h3 class="sh">Raspberry Pi</h3>
+    <div class="cols">
+      <div class="col">
+        <label class="opt"><input id="pBoot" type="checkbox"> Start YourTube when the Pi boots</label>
+        <label class="opt"><input id="pTv" type="checkbox"> Turn the TV on and switch to this input when YourTube starts</label>
+        <label class="opt"><input id="pWd" type="checkbox"> Restart automatically if the app crashes or freezes</label>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><button id="reset">Restore default channels</button><button id="rg">Refresh guide now</button><button id="rc">New remote code</button><button id="exit">Exit YourTube</button><button id="close">Done</button></div>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const LV=$('lv');
+// Problems log: skipped files and videos, feeds that stop working, bad links. Kept between runs.
+let LOG=[];try{LOG=JSON.parse(localStorage.getItem('yt.log')||'[]')}catch(e){}
+function logEvent(k,ch,m,detail){
+  m=String(m).slice(0,220);
+  const hit=LOG.find(x=>x.k===k&&x.ch===(ch||'')&&x.m===m);
+  if(hit){hit.t=Date.now();hit.n=(hit.n||1)+1}
+  else{LOG.push({t:Date.now(),k,ch:ch||'',m,n:1,d:detail?String(detail).slice(0,300):''});if(LOG.length>200)LOG.shift()}
+  try{localStorage.setItem('yt.log',JSON.stringify(LOG))}catch(e){}
+  dirty=1;if($('set').open)renderLog();
+}
+let goff=0;   // guide page: 0 is now, each step is two hours later
+// Per-channel programming options: order, minimum video length and number of videos.
+const kindOf=c=>String(c.l).startsWith('local:')?'local':String(c.l).startsWith('UU')?'channel':'playlist';
+const defOpts=c=>({order:'default',min:kindOf(c)==='local'?0:180,count:kindOf(c)==='channel'?50:500});
+const optsOf=c=>Object.assign(defOpts(c),c.o||{});
+const optSig=c=>{const o=optsOf(c);return o.order+'|'+o.min+'|'+o.count};
+const ORDERS=['default','reverse','shuffle','alpha'],MINS=[0,60,180,300,600,1200,1800],COUNTS=[10,25,50,100,200,500];
+const ORDER_NAMES={channel:['Newest first','Oldest first'],playlist:['Playlist order','Reverse playlist order'],local:['File name order','Reverse file order']};
+const orderName=(c,v)=>v==='shuffle'?'Shuffled':v==='alpha'?'A to Z by title':ORDER_NAMES[kindOf(c)][v==='reverse'?1:0];
+const minName=m=>m?(m/60)+' min':'Any length';
+const lenWords=sec=>sec<60?sec+' seconds':(sec/60)+(sec===60?' minute':' minutes');
+function orderItems(items,o){
+  const a=items.slice();
+  if(o.order==='reverse')a.reverse();
+  else if(o.order==='alpha')a.sort((x,y)=>x.t.localeCompare(y.t,undefined,{numeric:true,sensitivity:'base'}));
+  else if(o.order==='shuffle')for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+const OOUPD={},OPEN={};
+function setOpt(i,k,v){
+  const c=S.channels[i];if(!c)return;
+  if(k==='order'){if(!ORDERS.includes(v))return}
+  else if(k==='min')v=Math.max(0,Math.min(3600,v|0));
+  else if(k==='count')v=Math.max(1,Math.min(500,v|0));
+  else return;
+  c.o=Object.assign({},c.o||{},{[k]:v});save();
+  try{localStorage.removeItem('yt.o.'+c.l)}catch(e){}
+  delete PR[c.l];delete SC[c.l];
+  getSched(c.l,true).then(()=>{if(cur===0)renderGuide();if(cur===i+1&&cur>0)tune(cur);if($('set').open)renderStatus()});
+  if(OOUPD[c.l])OOUPD[c.l]();
+  dirty=1;
+}
+function cycleOpt(i,k){
+  const c=S.channels[i],o=optsOf(c),list=k==='order'?ORDERS:k==='min'?MINS:COUNTS;
+  setOpt(i,k,list[(list.indexOf(o[k])+1)%list.length]);
+}
+const chName=l=>((S.channels.find(c=>c.l===l)||{}).n)||'';
+function noteSkips(l,v){
+  const sk=v&&v.skipped;if(!sk)return;
+  const ch=chName(l),pl=n=>n+' video'+(n>1?'s':'');
+  if(sk.short)logEvent('skip',ch,'Skipped '+pl(sk.short)+' shorter than '+lenWords(v.min||(v.local?5:180)));
+  if(sk.long)logEvent('skip',ch,'Skipped '+pl(sk.long)+' longer than 4 hours');
+  if(sk.unavailable)logEvent('skip',ch,pl(sk.unavailable)+' could not be used (private, deleted, live or unavailable)');
+  (sk.files||[]).forEach(f=>logEvent('skip',ch,'Skipped file '+f.n+': '+f.why));
+}
+function renderLog(){
+  const L=$('logv');L.innerHTML='';
+  if(!LOG.length){L.textContent='Nothing to report. Skipped files and problems will be listed here.';return}
+  const kinds={skip:'Skipped',guide:'Guide',play:'Playback',add:'Add channel'};
+  [...LOG].sort((a,b)=>b.t-a.t).slice(0,60).forEach(x=>{
+    const d=document.createElement('div');d.className='lr '+x.k;
+    d.innerHTML='<b></b> <span></span><small></small>';
+    d.children[0].textContent=(kinds[x.k]||x.k)+(x.ch?' ('+x.ch+')':'');
+    d.children[1].textContent=x.m;
+    d.children[2].textContent=new Date(x.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+(x.n>1?', seen '+x.n+' times':'')+(x.d?'. '+x.d:'');
+    L.appendChild(d);
+  });
+}
+const KEY='channelsurf.v1';
+const DEF={channels:[
+ {n:'NASA',l:'UULA_DiR1FfKNvjuUpBHmylQ'},
+ {n:'TED',l:'UUAuUUnT6oDeKwE6v1NGQxug'},
+ {n:'Kurzgesagt',l:'UUsXVk37bltHxD1rDPwtNM8Q'},
+ {n:'Veritasium',l:'UUHnyfMqiRRG1u-2MsSQLbXA'},
+ {n:'National Geographic',l:'UUpVm7bg6pXKo1Pr6k5kxG9A'}],
+ last:0,vol:60,muted:false,seek:true,key:'',scale:1.5,cc:false,gf:''};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let S=(()=>{try{return Object.assign(clone(DEF),JSON.parse(localStorage.getItem(KEY)))}catch(e){return clone(DEF)}})();
+let dirty=1,rmsg='',rmid=0;
+const save=()=>{dirty=1;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+let gen=0,listReady=true,lastList='',sm=null,curItem=0,paused=false,prog=null,sleepAt=0,sleepT=null;
+let P,ready=false,on=false,cur=0,prev=1,gsel=0,GV=[],net=true,netBad=0,pending=null,errs=0,ot,bt,nb='',nt;
+
+/* ---------- YouTube player ---------- */
+const tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady=()=>{
+  P=new YT.Player('yt',{width:'100%',height:'100%',
+    playerVars:{controls:0,disablekb:1,rel:0,modestbranding:1,playsinline:1,iv_load_policy:3,fs:0},
+    events:{onReady:()=>{ready=true;try{P.getIframe().tabIndex=-1}catch(e){}applyVol();if(on)tune(S.last)},onStateChange:st,onError:ev=>{
+      logYT(ev&&ev.data);
+      if(++errs>6){$('on_t').textContent='This channel has no playable videos';showOsd();return}
+      try{sm?advance():P.nextVideo()}catch(e){}}}});
+};
+function st(e){
+  if(sm&&sm.local)return;   // the YouTube player is idle while a local file plays
+  if((e.data===2||e.data===5)&&on&&cur&&listReady&&!paused)setTimeout(()=>{try{if(cur&&[2,5].includes(P.getPlayerState()))P.playVideo()}catch(x){}},400);
+  if(e.data===0&&sm&&listReady){advance();return}
+  if(e.data!==1||!listReady)return;
+  errs=0;applyCC();setTimeout(applyCC,1500);
+  if(pending==='seek'){
+    pending=null;
+    const d=P.getDuration();
+    if(S.seek&&d>90)P.seekTo(Math.random()*d*.7,true);
+  }
+  const t=(P.getVideoData()||{}).title,c=S.channels[cur-1];
+  if(c&&t&&c.now!==t){c.now=t;save();$('on_t').textContent=t;showOsd()}
+}
+function startList(list){
+  const my=++gen,same=lastList===list;
+  lastList=list;listReady=false;pending=null;
+  let old='';try{old=JSON.stringify(P.getPlaylist()||[])}catch(e){}
+  try{P.stopVideo()}catch(e){}
+  P.loadPlaylist({list,listType:'playlist',index:0});
+  let tries=0;
+  const t=setInterval(()=>{
+    if(my!==gen||++tries>40){clearInterval(t);if(my===gen)listReady=true;return}
+    let pl=[];try{pl=P.getPlaylist()||[]}catch(e){}
+    if(pl.length&&(same?tries>=3:JSON.stringify(pl)!==old)){
+      clearInterval(t);
+      P.setLoop(true);P.setShuffle(true);
+      pending='seek';listReady=true;
+      if(pl.length>1)P.playVideoAt(Math.floor(Math.random()*pl.length));
+    }
+  },300);
+}
+// Local video files play in an ordinary <video> element that sits over the YouTube player.
+function logYT(code){
+  const why={2:'invalid video link',5:'the player could not play it',100:'the video was removed or is private',101:'the owner has turned off embedding',150:'the owner has turned off embedding',153:'embedding is blocked for this video'}[code]||'error '+code;
+  const c=S.channels[cur-1],it=sm&&sm.items&&sm.items[curItem];
+  logEvent('skip',c?c.n:'','Skipped "'+(it?it.t:'a video')+'": '+why,it?'https://youtu.be/'+it.id:'');
+}
+function vstop(){try{LV.pause()}catch(e){}LV.style.display='none';LV.removeAttribute('src');try{LV.load()}catch(e){}}
+function vload(it,off){
+  if(sm&&sm.local){
+    try{P.stopVideo()}catch(e){}
+    LV.style.display='block';LV.src=it.u;
+    LV.onloadedmetadata=()=>{if(off>1&&off<(LV.duration||1e9)-1)LV.currentTime=off;LV.play().catch(()=>{})};
+  }else{vstop();P.loadVideoById({videoId:it.id,startSeconds:Math.floor(off||0)})}
+}
+function vpause(){if(sm&&sm.local)LV.pause();else P.pauseVideo()}
+function vplay(){if(sm&&sm.local)LV.play().catch(()=>{});else P.playVideo()}
+LV.onended=()=>{if(sm&&sm.local&&listReady)advance()};
+LV.onerror=()=>{
+  if(!(sm&&sm.local))return;
+  {const it=sm.items[curItem],c=S.channels[cur-1],code=LV.error&&LV.error.code;
+   logEvent('skip',c?c.n:'','Skipped file '+(it?it.t:'')+': '+({1:'loading was stopped',2:'network error reading the drive',3:'it could not be decoded (convert to MP4 H.264)',4:'format not supported (convert to MP4 H.264)'}[code]||'could not be played'),it?it.id:'')}
+  if(++errs>6){flash('','Cannot play these files','Try MP4 (H.264) or WebM videos');return}
+  advance();
+};
+LV.onplaying=()=>{errs=0};
+function applyCC(){
+  try{if(S.cc)P.loadModule('captions');else{P.unloadModule('captions');P.unloadModule('cc')}}catch(e){}
+}
+function applyVol(){
+  LV.volume=S.vol/100;LV.muted=!!S.muted;
+  $('vol').value=S.vol;$('bMute').textContent=S.muted?'Unmute':'Mute';
+  if(!ready)return;
+  P.setVolume(S.vol);S.muted?P.mute():P.unMute();
+}
+
+/* ---------- Channel source parsing ---------- */
+function parse(t){
+  t=t.trim();let m;
+  if(m=t.match(/[?&]list=([\w-]+)/))return m[1];
+  if(m=t.match(/(UC[\w-]{22})/))return 'UU'+m[1].slice(2);
+  if(/^(PL|UU|OL|FL|LL|RD)[\w-]{10,}$/.test(t))return t;
+  return null;
+}
+async function resolve(t){
+  t=t.trim();const l=parse(t);if(l)return {l};
+  try{
+    const r=await fetch('resolve.php?u='+encodeURIComponent(t)).then(r=>r.json());
+    if(r&&r.id)return {l:'UU'+r.id.slice(2),n:r.title};
+  }catch(e){}
+  const h=(t.match(/@[\w.-]+/)||[])[0]||(/^[\w.-]+$/.test(t)?'@'+t:null);
+  if(h&&S.key){
+    const r=await fetch('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle='+encodeURIComponent(h)+'&key='+encodeURIComponent(S.key)).then(r=>r.json());
+    const id=r.items&&r.items[0]&&r.items[0].id;
+    if(id)return {l:'UU'+id.slice(2)};
+  }
+  return null;
+}
+
+/* ---------- Tuning ---------- */
+// Channel up/down skip hidden channels. Groups can filter the guide.
+function step(d){
+  const N=S.channels.length+1;let i=cur;
+  for(let k=0;k<N;k++){i=((i+d)%N+N)%N;if(i===0||!S.channels[i-1].hide)return i}
+  return cur;
+}
+function groups(){const g=[];S.channels.forEach(c=>{if(c.g&&!c.hide&&!g.includes(c.g))g.push(c.g)});return g}
+function cycleGroup(){
+  const l=['',...groups()];S.gf=l[(l.indexOf(S.gf||'')+1)%l.length];save();gsel=0;
+  if(cur===0)renderGuide();flash('','Group: '+(S.gf||'All channels'),'');dirty=1;
+}
+// ---------- internet connection ----------
+function netChanged(){
+  logEvent('guide','',net?'The internet connection is back':'The internet connection was lost: YouTube channels cannot play, local channels still can');
+  $('gnet').hidden=net;$('gnet').textContent='No internet connection. YouTube channels cannot play; local channels still can.';
+  dirty=1;
+  if(net){
+    flash('','Back online','');refreshStale(false);
+    if(!ready&&!window.YT){const t=document.createElement('script');t.src='https://www.youtube.com/iframe_api';document.head.appendChild(t)}
+  }else if(on&&cur>0&&!S.channels[cur-1].path){
+    const j=S.channels.findIndex(c=>c.path&&!c.hide);
+    if(j>=0){tune(j+1);flash('','Offline: switched to '+S.channels[j].n,'')}else flash('','No internet connection','YouTube channels cannot play');
+  }
+}
+async function checkNet(){
+  let ok=false;
+  try{await fetch('https://www.youtube.com/generate_204',{mode:'no-cors',cache:'no-store'});ok=true}catch(e){}
+  if(ok){netBad=0;if(!net){net=true;netChanged()}else if(!ready&&!window.YT)netChanged_retry()}
+  else if(++netBad>=2&&net){net=false;netChanged()}
+}
+function netChanged_retry(){const t=document.createElement('script');t.src='https://www.youtube.com/iframe_api';document.head.appendChild(t)}
+setTimeout(checkNet,3000);setTimeout(checkNet,8000);setInterval(checkNet,30000);
+addEventListener('online',checkNet);addEventListener('offline',()=>{netBad=1;checkNet()});
+function tune(i,silent){
+  const N=S.channels.length+1;
+  i=((i%N)+N)%N;cur=i;paused=false;prog=null;S.last=i;if(i)prev=i;save();blip();
+  $('guide').hidden=i!==0;
+  if(i===0){gen++;pending=null;listReady=true;sm=null;goff=0;renderGuide();try{P&&P.stopVideo()}catch(e){};vstop();osd(false);return}
+  errs=0;
+  osd(true);
+  const ch0=S.channels[i-1];
+  if(ready||ch0.path)play(ch0);else $('on_t').textContent='YouTube is not available yet (check the internet connection)';
+}
+function logoOf(c){
+  const sc=c&&SC[c.l];
+  return c?(c.logo||(sc&&sc.logo)||''):'';
+}
+function setLogo(el,c){
+  const u=logoOf(c);
+  el.textContent=u?'':((c&&c.n)||'?')[0].toUpperCase();
+  el.style.backgroundImage=u?'url("'+u.replace(/"/g,'%22')+'")':'none';
+}
+function osd(tuning){
+  const c=S.channels[cur-1];
+  $('on_l').style.display=c?'flex':'none';if(c)setLogo($('on_l'),c);
+  $('on_n').textContent=cur+1;
+  $('on_c').textContent=c?c.n:'Channel guide';
+  $('on_t').textContent=c?(tuning?'Tuning in...':(c.now||'')):'See what is on';
+  $('on_x').textContent='';$('on_p').hidden=true;
+  showOsd();
+}
+function showOsd(ms){const o=$('osd');o.classList.add('show');clearTimeout(ot);ot=setTimeout(()=>o.classList.remove('show'),ms||4000)}
+// Info key: the current title, time left and what is next, without opening the guide.
+function showInfo(){
+  const c=S.channels[cur-1];if(!c)return;
+  const o=onNow(c);
+  $('on_l').style.display='flex';setLogo($('on_l'),c);
+  $('on_n').textContent=cur+1;$('on_c').textContent=c.n;$('on_t').textContent=o.now||c.now||'';
+  const m=o.left?(o.left>=3600?Math.floor(o.left/3600)+' h '+Math.round(o.left%3600/60)+' min':Math.max(1,Math.round(o.left/60))+' min')+' left':'';
+  $('on_x').textContent=[m,o.next?'Next: '+o.next:''].filter(Boolean).join('. ');
+  const bar=$('on_p');
+  if(prog&&prog.e>prog.s){bar.hidden=false;bar.firstChild.style.width=Math.max(0,Math.min(100,(Date.now()-prog.s)/(prog.e-prog.s)*100))+'%'}else bar.hidden=true;
+  showOsd(7000);
+}
+function blip(){const b=$('blip');b.classList.remove('go');void b.offsetWidth;b.classList.add('go')}
+
+/* ---------- Guide ---------- */
+const SC={},PR={};let Q=Promise.resolve();
+const mk=(items,logo,at)=>({items,logo:logo||null,at:at||Date.now(),t0:0,T:items.reduce((a,x)=>a+x.d,0)});
+const TTL=216e5,LASTTRY={},ERR={};  // schedules are refreshed every 6 hours
+async function apiSched(l,minL,count){
+  if(!S.key)return null;
+  try{
+    const k=encodeURIComponent(S.key),B='https://www.googleapis.com/youtube/v3/';
+    const out=[];let tok='';
+    const max=count,pages=Math.min(16,Math.ceil(count/50)+5);
+    for(let pg=0;pg<pages&&out.length<max;pg++){
+      const a=await fetch(B+'playlistItems?part=contentDetails&maxResults=50&playlistId='+l+'&key='+k+(tok?'&pageToken='+tok:'')).then(r=>r.json());
+      if(a.error){ERR[l]='YouTube API: '+String(a.error.message||'error').slice(0,120);return null}
+      const ids=(a.items||[]).map(x=>x.contentDetails.videoId);
+      if(!ids.length)break;
+      const v=await fetch(B+'videos?part=contentDetails,snippet&id='+ids.join(',')+'&key='+k).then(r=>r.json());
+      const by={};
+      (v.items||[]).forEach(x=>{
+        const m=/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(x.contentDetails.duration)||[];
+        by[x.id]={id:x.id,t:x.snippet.title,d:(m[1]|0)*3600+(m[2]|0)*60+(m[3]|0)};
+      });
+      ids.forEach(id=>{const x=by[id];if(x&&x.d>=minL&&x.d<=14400&&out.length<max)out.push(x)});
+      tok=a.nextPageToken;if(!tok)break;
+    }
+    if(!out.length){ERR[l]='YouTube API found no usable videos';return null}
+    let logo=null,cid=l.startsWith('UU')?'UC'+l.slice(2):null;
+    if(!cid){
+      try{
+        const pl=await fetch(B+'playlists?part=snippet&id='+l+'&key='+k).then(r=>r.json());
+        cid=(((pl.items||[])[0]||{}).snippet||{}).channelId||null;
+      }catch(e){}
+    }
+    if(cid){
+      try{
+        const ch=await fetch(B+'channels?part=snippet&id='+cid+'&key='+k).then(r=>r.json());
+        const th=(((ch.items||[])[0]||{}).snippet||{}).thumbnails||{};
+        logo=(th.high||th.medium||th.default||{}).url||null;
+      }catch(e){}
+    }
+    return {items:out,logo};
+  }catch(e){ERR[l]='YouTube API request failed';return null}
+}
+async function fetchLocal(l,o){
+  o=o||optsOf(S.channels.find(c=>c.l===l)||{l});
+  const path=l.slice(6);ERR[l]='';
+  let items=[],pending=1,guard=0,skipped=null;
+  try{
+    while(pending>0&&guard++<80){   // the server measures a few files at a time
+      const r=await fetch('local.php?a=scan&p='+encodeURIComponent(path)).then(r=>r.json());
+      if(!r.ok){ERR[l]=r.error||'Folder not found (is the USB drive plugged in?)';return null}
+      items=r.items;pending=r.pending;skipped=r.skipped||null;
+    }
+  }catch(e){ERR[l]='Could not reach local.php (local folders need the Raspberry Pi version)';return null}
+  const minL=Math.max(5,o.min);
+  let list=items.filter(x=>x.d>=minL);
+  if(skipped&&items.length>list.length)skipped.short=(skipped.short||0)+items.length-list.length;
+  list=list.slice(0,o.count);
+  if(!list.length){ERR[l]='No playable video files found in that folder'+(items.length?' (all are shorter than the minimum length)':'');return null}
+  const v=mk(list.map(x=>({id:x.p,t:x.t,d:x.d,u:'local.php?a=file&p='+encodeURIComponent(x.p)})),null);
+  v.local=true;v.src='local folder';v.skipped=skipped;v.min=minL;
+  return v;
+}
+async function fetchSched(l,fresh){
+  const ch=S.channels.find(c=>c.l===l)||{l},o=optsOf(ch);
+  if(l.startsWith('local:'))return fetchLocal(l,o);
+  const minL=Math.max(10,o.min),ck='yt.s7.'+l+'|'+minL+'|'+o.count;
+  const done=(v,src)=>{v.src=src;v.min=minL;ERR[l]='';return v};
+  const keep=(items,logo)=>{try{localStorage.setItem(ck,JSON.stringify({ts:Date.now(),items,logo}))}catch(e){}};
+  try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(!fresh&&c&&Date.now()-c.ts<TTL)return done(mk(c.items,c.logo,c.ts),'saved copy')}catch(e){}
+  ERR[l]='';
+  const ai=await apiSched(l,minL,o.count);
+  if(ai&&ai.items.length){keep(ai.items,ai.logo);return done(mk(ai.items,ai.logo),'YouTube API')}
+  try{
+    const r=await fetch('schedule.php?l='+encodeURIComponent(l)+'&min='+minL+'&count='+o.count+(fresh?'&fresh=1':'')).then(r=>r.json());
+    if(r.items&&r.items.length){keep(r.items,r.logo);const v=done(mk(r.items,r.logo),'schedule.php');v.skipped=r.skipped;return v}
+    ERR[l]=(ERR[l]?ERR[l]+'. ':'')+'schedule.php found no videos (YouTube unreachable, or its page changed)';
+  }catch(e){ERR[l]=(ERR[l]?ERR[l]+'. ':'')+'Could not reach schedule.php'}
+  try{   // YouTube cannot be read: show the last saved copy of this lineup, however old
+    const c=JSON.parse(localStorage.getItem(ck)||'null');
+    if(c&&c.items&&c.items.length){
+      const msg=ERR[l];const v=done(mk(c.items,c.logo,c.ts),'older saved copy');
+      ERR[l]='Using an older saved copy: '+msg;logEvent('guide',ch.n||'','Could not reach YouTube; using an older saved copy of the lineup');
+      return v;
+    }
+  }catch(e){}
+  return null;
+}
+function applySched(l,v){
+  if(!v)logEvent('guide',chName(l),ERR[l]||'Could not build a schedule');else noteSkips(l,v);
+  if(v){const ch0=S.channels.find(c=>c.l===l);v.items=orderItems(v.items,optsOf(ch0||{l}));stabilize(l,v)}
+  SC[l]=v;
+  if($('set').open)renderStatus();
+  const ch=S.channels.find(c=>c.l===l);
+  if(v&&v.logo&&ch&&ch.logo!==v.logo){ch.logo=v.logo;save()}
+  return v;
+}
+// Reloads schedules that are older than 6 hours (or all of them), so new uploads appear without a restart.
+async function refreshStale(force){
+  for(const c of S.channels){
+    const sc=SC[c.l];
+    if(!force&&(sc===undefined||(sc&&Date.now()-sc.at<(sc.local?9e5:TTL))))continue;
+    if(!force&&Date.now()-(LASTTRY[c.l]||0)<18e5)continue;
+    LASTTRY[c.l]=Date.now();
+    try{
+      const v=await fetchSched(c.l,true);
+      if(v){applySched(c.l,v);PR[c.l]=Promise.resolve(v)}
+      else logEvent('guide',c.n,'Could not refresh (using the last good schedule): '+(ERR[c.l]||'unknown problem'))
+    }catch(e){}
+  }
+  if(cur===0&&on)renderGuide();
+  dirty=1;
+}
+setInterval(()=>refreshStale(false),9e5);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshStale(false)});
+function getSched(l,now){
+  if(PR[l])return PR[l];
+  const run=()=>fetchSched(l).then(v=>applySched(l,v));
+  return PR[l]=now?run():(Q=Q.then(run));
+}
+function slot(sc,t){
+  let p=(((t-(sc.t0||0))%sc.T)+sc.T)%sc.T;
+  for(let i=0;i<sc.items.length;i++){if(p<sc.items[i].d)return {i,off:p};p-=sc.items[i].d}
+  return {i:0,off:0};
+}
+// Keeps the airing order steady across refreshes: the video airing now keeps airing,
+// videos that are gone drop out, and new uploads join the end of the loop.
+function stabilize(l,sc){
+  const now=Date.now()/1000,fresh=sc.items,by={};
+  fresh.forEach(x=>by[x.id]=x);
+  let st=null;try{st=JSON.parse(localStorage.getItem('yt.o.'+l)||'null')}catch(e){}
+  const chS=S.channels.find(c=>c.l===l),sig=chS?optSig(chS):'';
+  if(st&&st.sig!==sig)st=null;   // options changed: start the lineup afresh
+  let list=fresh,t0=0;
+  if(st&&Array.isArray(st.list)&&st.list.length){
+    const old=st.list,oT=old.reduce((a,x)=>a+x.d,0);
+    let p=(((now-st.t0)%oT)+oT)%oT,k=0,off=0;
+    for(;k<old.length;k++){if(p<old[k].d){off=p;break}p-=old[k].d}
+    if(k>=old.length){k=0;off=0}
+    const kept=old.filter(x=>by[x.id]).map(x=>by[x.id]),ids=new Set(kept.map(x=>x.id));
+    if(kept.length){
+      list=kept.concat(fresh.filter(x=>!ids.has(x.id)));
+      for(let n=0;n<old.length;n++){
+        const j=list.findIndex(x=>x.id===old[(k+n)%old.length].id);
+        if(j>=0){t0=now-list.slice(0,j).reduce((a,x)=>a+x.d,0)-(n?0:off);break}
+      }
+    }
+    if(st.list.length===list.length&&st.list.every((x,i)=>x.id===list[i].id&&x.d===list[i].d))t0=st.t0;
+  }
+  sc.items=list;sc.t0=t0;sc.T=list.reduce((a,x)=>a+x.d,0);
+  try{localStorage.setItem('yt.o.'+l,JSON.stringify({t0,sig,list:list.map(x=>({id:x.id,d:x.d}))}))}catch(e){}
+  return sc;
+}
+async function play(c){
+  const my=++gen;listReady=false;pending=null;sm=null;
+  try{P.stopVideo()}catch(e){}
+  vstop();
+  if(SC[c.l]===null){delete PR[c.l];delete SC[c.l]}
+  const sc=await getSched(c.l,true);
+  if(my!==gen)return;
+  if(!sc){
+    if(c.path){flash('',c.n,'No playable videos found. '+(ERR[c.l]||''));return}
+    startList(c.l);return
+  }
+  sm=sc;const s=slot(sc,Date.now()/1000);curItem=s.i;listReady=true;
+  c.now=sc.items[s.i].t;save();osd(false);
+  prog={s:Date.now()-s.off*1000,e:Date.now()+(sc.items[s.i].d-s.off)*1000};
+  vload(sc.items[s.i],s.off);
+}
+function advance(){
+  const c=S.channels[cur-1],ns=c&&SC[c.l];
+  if(ns&&ns!==sm){  // a refreshed schedule arrived: rejoin the live timeline when this video ends
+    sm=ns;const s=slot(sm,Date.now()/1000),it0=sm.items[s.i];curItem=s.i;
+    c.now=it0.t;save();prog={s:Date.now()-s.off*1000,e:Date.now()+(it0.d-s.off)*1000};paused=false;
+    $('on_t').textContent=it0.t;showOsd();vload(it0,s.off);
+    return;
+  }
+  curItem=(curItem+1)%sm.items.length;
+  const it=sm.items[curItem];
+  if(c){c.now=it.t;save()}
+  prog={s:Date.now(),e:Date.now()+it.d*1000};paused=false;
+  $('on_t').textContent=it.t;showOsd();vload(it,0);
+}
+
+/* ---------- Guide: 2 hours, 6 channels per screen ---------- */
+const WIN=7200,hm=t=>new Date(t*1000).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+const lbl=t=>hm(t)+(new Date(t*1000).toDateString()!==new Date().toDateString()?' '+new Date(t*1000).toLocaleDateString([],{weekday:'short'}):'');
+function pageGuide(d){goff=Math.max(0,Math.min(11,goff+d));renderGuide()}
+function renderGuide(){
+  const g=$('rows'),keep=g.scrollTop;g.innerHTML='';
+  const now=Date.now()/1000,W=Math.floor(now/1800)*1800+goff*WIN;
+  g.style.setProperty('--rh',(g.clientHeight/6||100)+'px');
+  $('rt').innerHTML='';
+  for(let k=0;k<4;k++){const e=document.createElement('span');e.style.left=k*25+'%';e.textContent=lbl(W+k*1800);$('rt').appendChild(e)}
+  $('nowline').style.display=goff?'none':'';
+  $('gwin').textContent=goff?lbl(W)+' to '+hm(W+WIN):'';$('gnow').hidden=$('gprev').hidden=!goff;$('gnext').hidden=goff>=11;
+  $('nowline').style.setProperty('--p',Math.min(1,Math.max(0,(now-W)/WIN)));
+  if(!S.channels.length){g.innerHTML='<p class="empty">No channels yet. Open settings to add a YouTube channel or playlist.</p>';return}
+  if(S.gf&&!groups().includes(S.gf))S.gf='';
+  GV=S.channels.map((c,i)=>i).filter(i=>{const c=S.channels[i];return !c.hide&&(!S.gf||(c.g||'')===S.gf)});
+  $('gfilt').hidden=!groups().length;$('gfilt').textContent='Group: '+(S.gf||'All');
+  $('gnet').hidden=net;
+  gsel=Math.min(Math.max(gsel,0),Math.max(0,GV.length-1));
+  if(!GV.length){g.innerHTML='<p class="empty">All channels are hidden or filtered out. Open Settings to show a channel.</p>';return}
+  S.channels.forEach((c,i)=>{
+    if(SC[c.l]===undefined&&!PR[c.l])getSched(c.l).then(()=>{if(cur===0)renderGuide()});
+    if(!GV.includes(i))return;
+    const pos=GV.indexOf(i);
+    const row=document.createElement('div');row.className='grow'+(pos===gsel?' sel':'');
+    const lab=document.createElement('button');lab.className='lab';
+    lab.innerHTML='<div class="lg"></div><div class="lt"><b></b><span></span><small></small></div>';setLogo(lab.children[0],c);lab.querySelector('b').textContent=i+2;lab.querySelector('span').textContent=c.n;lab.querySelector('small').textContent=c.g||'';
+    lab.onclick=()=>tune(i+1);
+    const tl=document.createElement('div');tl.className='tl';
+    const add=(a,b,title,sub,live,vid)=>{
+      const e=document.createElement('button');e.className='blk'+(live?' live':'');
+      e.style.left=(a-W)/WIN*100+'%';e.style.width=(b-a)/WIN*100+'%';
+      if(vid)e.style.setProperty('--th','url("https://i.ytimg.com/vi/'+vid+'/mqdefault.jpg")');
+      e.innerHTML='<strong></strong><small></small>';e.children[0].textContent=title;e.children[1].textContent=sub;
+      e.onclick=()=>tune(i+1);tl.appendChild(e);
+    };
+    const sc=SC[c.l];
+    if(sc){
+      const s0=slot(sc,W);let k=s0.i,st=W-s0.off;
+      while(st<W+WIN){
+        const it=sc.items[k],en=st+it.d;
+        add(Math.max(st,W),Math.min(en,W+WIN),it.t,hm(st)+' to '+hm(en),now>=st&&now<en,sc.local?null:it.id);
+        st=en;k=(k+1)%sc.items.length;
+      }
+    }else add(W,W+WIN,c.n,sc===undefined?'Loading schedule...':'Schedule unavailable. Tune in to watch live.',false);
+    row.onmouseenter=()=>{gsel=pos;mark()};
+    row.append(lab,tl);g.appendChild(row);
+  });
+  g.scrollTop=keep;
+}
+function mark(){[...$('rows').children].forEach((r,i)=>{r.classList.toggle('sel',i===gsel);if(i===gsel)r.scrollIntoView({block:'nearest'})})}
+addEventListener('resize',()=>{if(cur===0&&on)renderGuide()});
+const clock=()=>{$('clk').textContent=new Date().toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})};
+clock();setInterval(()=>{clock();if(cur===0&&on)renderGuide()},15000);
+
+/* ---------- Controls ---------- */
+function wake(){
+  $('bar').classList.add('show');document.body.classList.remove('idle');
+  clearTimeout(bt);bt=setTimeout(()=>{$('bar').classList.remove('show');document.body.classList.add('idle')},3500);
+}
+['pointermove','pointerdown'].forEach(ev=>addEventListener(ev,wake));
+const toggleFull=()=>{
+  if(document.fullscreenElement)document.exitFullscreen();
+  else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+};
+const toggleMute=()=>{S.muted=!S.muted;save();applyVol()};
+$('bGuide').onclick=()=>tune(cur?0:prev);
+$('bUp').onclick=()=>tune(cur+1);
+$('bDown').onclick=()=>tune(cur-1);
+$('bMute').onclick=toggleMute;
+$('bFull').onclick=toggleFull;
+$('bSet').onclick=openSet;
+$('vol').oninput=e=>{S.vol=+e.target.value;S.muted=false;save();applyVol()};
+$('pw').onclick=()=>{
+  on=true;$('power').hidden=true;toggleFull();wake();
+  tune(S.last);
+};
+
+function flash(a,b,c){$('on_x').textContent='';$('on_p').hidden=true;$('on_l').style.display='none';$('on_n').textContent=a;$('on_c').textContent=b;$('on_t').textContent=c;showOsd()}
+function vol(d){S.vol=Math.max(0,Math.min(100,S.vol+d));S.muted=false;save();applyVol();flash('','Volume '+S.vol,'')}
+const KEYMAP={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',Enter:'ok',
+  PageUp:'chup',ChannelUp:'chup',PageDown:'chdn',ChannelDown:'chdn',
+  Escape:'back',BrowserBack:'back',GoBack:'back',Backspace:'back',Exit:'back',
+  g:'guide',G:'guide',Guide:'guide',Info:'info',i:'info',I:'info',n:'now',N:'now',Home:'now',t:'grp',T:'grp',ColorF0Red:'guide',
+  s:'set',S:'set',ContextMenu:'set',Settings:'set',ColorF1Green:'set',
+  m:'mute',M:'mute',AudioVolumeMute:'mute',AudioVolumeUp:'vup',AudioVolumeDown:'vdn',
+  c:'cc',C:'cc',f:'full',F:'full','+':'txtp','=':'txtp',ColorF3Blue:'txtp','-':'txtm',_:'txtm',ColorF2Yellow:'txtm'};
+addEventListener('keydown',e=>{
+  const k=e.key,dlg=$('set');
+  if(dlg.open){
+    if(['BrowserBack','GoBack','Exit'].includes(k)){dlg.close();return}
+    const t=e.target,txt=t.tagName==='INPUT'&&(t.type==='text'||t.type==='');
+    const fwd=k==='ArrowDown'||k==='ArrowRight',bwd=k==='ArrowUp'||k==='ArrowLeft';
+    if(fwd||bwd){
+      if((k==='ArrowLeft'||k==='ArrowRight')&&txt)return;
+      e.preventDefault();
+      const f=[...dlg.querySelectorAll('button,input')].filter(x=>!x.disabled&&x.offsetParent);
+      const n=f[(f.indexOf(document.activeElement)+(fwd?1:-1)+f.length)%f.length];
+      if(n)n.focus();
+    }
+    return;
+  }
+  if(!on||/INPUT|TEXTAREA/.test(e.target.tagName))return;
+  if(S.keys)flash('Key',k,'code '+e.code+'   keyCode '+e.keyCode);
+  if(/^\d$/.test(k)){
+    nb+=k;flash(nb,'Go to channel','');
+    clearTimeout(nt);nt=setTimeout(()=>{const n=+nb;nb='';if(n>=1&&n<=S.channels.length+1)tune(n-1);else osd(false)},1400);
+    return;
+  }
+  const a=KEYMAP[k];if(!a)return;
+  e.preventDefault();
+  doAct(a);
+});
+function doAct(a){
+  if($('set').open){
+    if(a==='back'){$('set').close();return}
+    if(a==='ok'){if(document.activeElement)document.activeElement.click();return}
+    const f=[...$('set').querySelectorAll('button,input')].filter(x=>!x.disabled&&x.offsetParent);
+    const d=(a==='down'||a==='right')?1:(a==='up'||a==='left')?-1:0;
+    if(d&&f.length){const n=f[(f.indexOf(document.activeElement)+d+f.length)%f.length];if(n)n.focus()}
+    return;
+  }
+  const N=S.channels.length;
+  switch(a){
+    case 'up':case 'down':case 'chup':case 'chdn':{
+      const d=(a==='up'||a==='chup')?1:-1;
+      if(cur===0){gsel=Math.max(0,Math.min(GV.length-1,gsel-d*(a[0]==='c'?6:1)));mark()}else tune(step(d));
+      break}
+    case 'left':case 'right':if(cur)vol(a==='right'?5:-5);else pageGuide(a==='right'?1:-1);break;
+    case 'info':if(cur)showInfo();break;
+    case 'now':if(cur===0){goff=0;renderGuide()}break;
+    case 'vup':vol(5);break;
+    case 'vdn':vol(-5);break;
+    case 'ok':if(cur)tune(0);else if(GV.length)tune(GV[gsel]+1);break;
+    case 'grp':if(cur===0)cycleGroup();break;
+    case 'back':tune(cur?0:prev);break;
+    case 'guide':tune(cur?0:prev);break;
+    case 'set':openSet();break;
+    case 'mute':toggleMute();flash('','Sound '+(S.muted?'off':'on'),'');break;
+    case 'clearlog':LOG=[];try{localStorage.setItem('yt.log','[]')}catch(e){}dirty=1;if($('set').open)renderLog();break;
+    case 'cc':S.cc=!S.cc;save();applyCC();flash('','Captions '+(S.cc?'on':'off'),'');break;
+    case 'full':toggleFull();break;
+    case 'txtp':bump(.25);break;
+    case 'txtm':bump(-.25);break;
+  }
+}
+
+/* ---------- Settings ---------- */
+// Fills in each channel row's status text (videos found, loop length, last update, or the problem).
+function renderStatus(){
+  document.querySelectorAll('#list .ch').forEach((d,i)=>{
+    const c=S.channels[i],e=d.querySelector('.cs');if(!c||!e)return;
+    const sc=SC[c.l];
+    const parts=sc?[sc.items.length+' videos',(sc.T/3600).toFixed(1)+' hour loop','updated '+hm(sc.at/1000)+' ('+(sc.src||'?')+')']:[sc===undefined?'Loading...':'No schedule'];
+    e.textContent=(c.hide?'(hidden) ':'')+parts.join(', ')+(ERR[c.l]?'. Problem: '+ERR[c.l]:'');
+    e.classList.toggle('bad',!!ERR[c.l]||sc===null);
+  });
+}
+async function sys(a,k,v){
+  const r=await fetch('system.php?a='+a+(k?'&k='+k+'&v='+v:''),{method:(a==='status'||a==='check')?'GET':'POST',cache:'no-store'});
+  return r.json();
+}
+async function piLoad(){
+  try{
+    const r=await sys('status');if(!r.ok)throw 0;
+    $('piset').hidden=false;$('pBoot').checked=!!r.boot;$('pTv').checked=!!r.tvon;$('pTv').disabled=!r.cec;$('pWd').checked=!!r.watchdog;
+  }catch(e){$('piset').hidden=true}
+}
+function openSet(){renderSet();renderStatus();renderLog();piLoad();$('key').value=S.key;$('seek').checked=S.seek;$('cc').checked=!!S.cc;$('kdbg').checked=!!S.keys;$('msg').textContent='';$('set').showModal()}
+function renderSet(){
+  const L=$('list');L.innerHTML='';
+  if(!S.channels.length)L.textContent='No channels yet. Add one below.';
+  S.channels.forEach((c,i)=>{
+    const w=document.createElement('div');w.className='chw';
+    const d=document.createElement('div');d.className='ch';
+    d.innerHTML='<input class="num" inputmode="numeric" aria-label="Channel number"><input aria-label="Channel name"><span class="cs"></span><button>Options</button><button>Up</button><button>Down</button><button>Remove</button>';
+    const nm=d.children[0];nm.value=i+2;nm.onfocus=()=>nm.select();
+    nm.onchange=()=>{const r=moveTo(i,+nm.value);$('msg').textContent=r;nm.value=i+2};
+    const inp=d.children[1];inp.value=c.n;
+    inp.onchange=()=>{c.n=inp.value.trim()||c.n;save();renderGuide()};
+    const oo=document.createElement('div');oo.className='oo';oo.hidden=!OPEN[c.l];
+    ['order','min','count'].forEach(k=>{const b=document.createElement('button');b.onclick=()=>cycleOpt(i,k);oo.appendChild(b)});
+    const gi=document.createElement('input');gi.placeholder='Group (News, Kids...)';gi.setAttribute('aria-label','Group');gi.value=c.g||'';
+    gi.onchange=()=>{c.g=gi.value.trim().slice(0,30);save();renderGuide();dirty=1};
+    const hb=document.createElement('button');
+    hb.onclick=()=>{c.hide=!c.hide;save();hb.textContent=c.hide?'Hidden: yes':'Hidden: no';renderStatus();renderGuide();dirty=1};
+    oo.append(gi,hb);
+    const upd=()=>{const o=optsOf(c);oo.children[0].textContent='Order: '+orderName(c,o.order);oo.children[1].textContent='Minimum length: '+minName(o.min);oo.children[2].textContent=(kindOf(c)==='local'?'Files: ':'Videos: ')+o.count;oo.children[4].textContent=c.hide?'Hidden: yes':'Hidden: no'};
+    upd();OOUPD[c.l]=upd;
+    d.children[3].onclick=()=>{OPEN[c.l]=!OPEN[c.l];oo.hidden=!OPEN[c.l]};
+    d.children[4].onclick=()=>mv(i,-1);d.children[5].onclick=()=>mv(i,1);d.children[6].onclick=()=>chg(()=>S.channels.splice(i,1));
+    w.append(d,oo);L.appendChild(w);
+  });
+  renderStatus();
+}
+function chg(f){
+  const id=(S.channels[cur-1]||{}).l,pid=(S.channels[prev-1]||{}).l;f();
+  const pj=S.channels.findIndex(c=>c.l===pid);if(pj>=0)prev=pj+1;
+  const j=S.channels.findIndex(c=>c.l===id);
+  if(cur&&j<0){tune(0)}else if(cur){cur=j+1;S.last=cur;prev=cur}
+  if(prev>S.channels.length)prev=1;
+  save();renderSet();renderGuide();
+}
+function moveTo(i,num){
+  const N=S.channels.length;
+  if(!Number.isInteger(num)||num<2||num>N+1)return 'Channel numbers go from 2 to '+(N+1)+'. Channel 1 is always the guide.';
+  const j=num-2;if(j===i)return '';
+  const a=S.channels[i],b=S.channels[j];
+  chg(()=>{[S.channels[i],S.channels[j]]=[S.channels[j],S.channels[i]]});
+  return a.n+' is now channel '+num+', and '+b.n+' moved to channel '+(i+2)+'.';
+}
+function mv(i,d){const j=i+d;if(j<0||j>=S.channels.length)return;chg(()=>{[S.channels[i],S.channels[j]]=[S.channels[j],S.channels[i]]})}
+async function addChan(src,name){
+  const r=await addChan0(src,name);
+  if(!/^Added/.test(r)&&src&&src.trim())logEvent('add','','Could not add "'+src.trim().slice(0,80)+'": '+r);
+  return r;
+}
+async function addChan0(src,name){
+  if(!src.trim())return 'Paste a channel or playlist link first.';
+  if(src.trim().startsWith('/')){   // a folder on this Pi or a USB drive
+    const path=src.trim().replace(/\/+$/,'')||'/';
+    let r=null;try{r=await fetch('local.php?a=scan&quick=1&p='+encodeURIComponent(path)).then(r=>r.json())}catch(e){}
+    if(!r)return 'Local folders only work when YourTube runs on the Raspberry Pi.';
+    if(!r.ok)return r.error||'That folder is not available.';
+    if(!r.count)return 'No video files (mp4, m4v, mov, webm, mkv, ogv) found in that folder.';
+    const l='local:'+path;
+    if(S.channels.some(c=>c.l===l))return 'That folder is already a channel.';
+    const n=(name||'').trim().slice(0,60)||path.split('/').filter(Boolean).pop()||'Local videos';
+    S.channels.push({n,l,path});save();renderSet();renderGuide();
+    return 'Added '+n+' as channel '+(S.channels.length+1)+' ('+r.count+' videos).';
+  }
+  let r=null;try{r=await resolve(src)}catch(e){}
+  if(!r)return 'Could not find a channel at that link. Check the URL, or add an API key in settings on the TV as a backup.';
+  if(S.channels.some(c=>c.l===r.l))return 'That channel is already in your list.';
+  const n=(name||'').trim().slice(0,60)||r.n||(src.match(/@[\w.-]+/)||[])[0]||'Channel '+(S.channels.length+2);
+  S.channels.push({n,l:r.l});save();renderSet();renderGuide();
+  return 'Added '+n+' as channel '+(S.channels.length+1)+'.';
+}
+$('add').onclick=async()=>{
+  const m=$('msg');m.textContent='Looking it up...';
+  const t=await addChan($('as').value,$('an').value);
+  m.textContent=t;if(t.startsWith('Added'))$('an').value=$('as').value='';
+};
+function setKey(v){
+  S.key=String(v||'').trim();save();
+  try{Object.keys(localStorage).filter(k=>k.startsWith('yt.s')).forEach(k=>localStorage.removeItem(k))}catch(x){}
+  Object.keys(PR).forEach(k=>{delete PR[k];delete SC[k]});if(cur===0)renderGuide();
+  refreshStale(true);
+}
+$('key').onchange=e=>setKey(e.target.value);
+async function fbOpen(p){
+  $('fbp').hidden=false;const L=$('fbl');L.textContent='Loading...';
+  try{
+    const r=await fetch('local.php?a=ls&p='+encodeURIComponent(p)).then(r=>r.json());
+    if(!r.ok){L.textContent=r.error||'Cannot open that folder.';return}
+    $('fbpath').textContent=r.path?r.path+'  ('+(r.videos||0)+' videos here)':'Drives and media folders';
+    $('fbuse').hidden=!r.path;$('fbuse').onclick=async()=>{$('fbp').hidden=true;$('msg').textContent='Adding...';$('msg').textContent=await addChan(r.path,'')};
+    L.innerHTML='';
+    const add=(label,path)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>fbOpen(path);L.appendChild(b)};
+    if(r.path)add('.. (up one level)',r.parent||'');
+    r.dirs.forEach(d=>add(d.n+(d.v?'  ('+d.v+' videos)':''),d.p));
+    if(r.error)L.appendChild(Object.assign(document.createElement('p'),{textContent:r.error}));
+  }catch(e){L.textContent='Local folders only work when YourTube runs on the Raspberry Pi.'}
+}
+$('fb').onclick=()=>fbOpen('');
+$('fbx').onclick=()=>{$('fbp').hidden=true};
+[['pBoot','boot'],['pTv','tvon'],['pWd','watchdog']].forEach(([id,k])=>{$(id).onchange=async e=>{try{await sys('set',k,e.target.checked?1:0)}catch(x){}piLoad()}});
+$('gprev').onclick=()=>pageGuide(-1);
+$('gfilt').onclick=cycleGroup;
+$('arr').onclick=()=>{
+  const order=[];S.channels.forEach(c=>{const g=c.g||'';if(g&&!order.includes(g))order.push(g)});
+  const rank=c=>{const g=c.g||'';return g?order.indexOf(g):order.length};
+  chg(()=>{S.channels=S.channels.map((c,i)=>[c,i]).sort((a,b)=>rank(a[0])-rank(b[0])||a[1]-b[1]).map(x=>x[0])});
+  $('msg').textContent=order.length?'Channels arranged by group.':'Give some channels a group first (Options on a channel).';
+};
+$('rg').onclick=async()=>{const m=$('msg');m.textContent='Refreshing the guide...';await refreshStale(true);renderStatus();m.textContent='Guide refreshed.'};
+$('logc').onclick=()=>{LOG=[];try{localStorage.setItem('yt.log','[]')}catch(e){}renderLog();dirty=1};
+$('gnext').onclick=()=>pageGuide(1);$('gnow').onclick=()=>{goff=0;renderGuide()};
+$('close').onclick=()=>$('set').close();
+$('exit').onclick=async()=>{
+  if(!confirm('Close YourTube and stop its server?'))return;
+  const m=$('msg');m.textContent='Closing YourTube...';
+  try{const r=await fetch('exit.php',{method:'POST'});if(!r.ok)throw 0}
+  catch(e){m.textContent='Exit only works when YourTube runs on the Raspberry Pi. Close this tab or window instead.'}
+};
+
+/* ---------- Text size ---------- */
+function applyScale(){document.documentElement.style.setProperty('--s',S.scale);$('sv').textContent=Math.round(S.scale*100)+'%';if(cur===0&&on)renderGuide()}
+function bump(d){S.scale=Math.min(3,Math.max(.75,Math.round((S.scale+d)*100)/100));save();applyScale()}
+$('sm').onclick=$('bSm').onclick=()=>bump(-.25);
+$('lg').onclick=$('bLg').onclick=()=>bump(.25);
+
+/* ---------- Phone remote ---------- */
+function mkcode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',b=new Uint8Array(6);crypto.getRandomValues(b);return [...b].map(x=>A[x%A.length]).join('')}
+if(!S.rc){S.rc=mkcode();save()}
+const say=t=>{rmsg=t;rmid++;dirty=1};
+function showRemote(){const t='Phone remote: open '+new URL('remote.html',location.href).href+' and enter code '+S.rc;$('rinfo').textContent=t;$('rinfo2').textContent=t}
+$('rc').onclick=()=>{S.rc=mkcode();save();showRemote()};
+function onNow(c){
+  const sc=SC[c.l];if(!sc)return {now:c.now||'',next:'',left:0};
+  const s=slot(sc,Date.now()/1000),n=sc.items.length;
+  return {now:sc.items[s.i].t,next:sc.items[(s.i+1)%n].t,left:Math.round(sc.items[s.i].d-s.off)};
+}
+const snap=()=>({ts:Date.now(),channels:S.channels.map(c=>{const o=onNow(c),sc=SC[c.l];return {n:c.n,logo:logoOf(c)||'',now:o.now,next:o.next,left:o.left,cnt:sc?sc.items.length:0,upd:sc?Math.round(sc.at/1000):0,err:ERR[c.l]||'',kind:kindOf(c),o:optsOf(c),g:c.g||'',hide:!!c.hide}}),cur,vol:S.vol,muted:S.muted,seek:S.seek,cc:!!S.cc,scale:S.scale,on,paused,prog,sleepAt,online:net,groups:groups(),gf:S.gf||'',msg:rmsg,mid:rmid,log:[...LOG].sort((a,b)=>b.t-a.t).slice(0,40)});
+async function quit(){
+  try{const r=await fetch('exit.php',{method:'POST'});if(r.ok)return}catch(e){}
+  try{P.stopVideo()}catch(e){}tune(0);
+}
+function setSleep(m){
+  clearTimeout(sleepT);sleepAt=m>0?Date.now()+m*6e4:0;
+  if(m>0)sleepT=setTimeout(()=>{sleepAt=0;quit()},m*6e4);
+  say(m>0?'Sleep timer set for '+m+' minutes.':'Sleep timer off.');
+}
+setInterval(()=>{dirty=1},60000);
+async function runCmd(c){
+  if(!c||typeof c!=='object')return;
+  const i=c.i|0;
+  if(['tune','up','down','guide','key','pause','next'].includes(c.t)&&!on){say('Press Turn on at the TV first.');return}
+  switch(c.t){
+    case 'tune':tune(i);break;
+    case 'key':{const kk=c.k||c.v;if(['up','down','left','right','ok','back','guide','set','chup','chdn','info','now'].includes(kk))doAct(kk);break}
+    case 'pause':if(cur){if(paused){paused=false;vplay()}else{paused=true;vpause()}dirty=1}break;
+    case 'next':if(cur&&sm)advance();else if(cur)P.nextVideo();break;
+    case 'sleep':setSleep(Math.max(0,Math.min(480,c.v|0)));break;
+    case 'exit':say('Closing YourTube...');quit();break;
+    case 'up':tune(step(1));break;
+    case 'down':tune(step(-1));break;
+    case 'guide':tune(cur?0:prev);break;
+    case 'mute':toggleMute();break;
+    case 'vol':S.vol=Math.max(0,Math.min(100,c.v|0));S.muted=false;save();applyVol();break;
+    case 'add':say(await addChan(String(c.src||''),String(c.name||'')));break;
+    case 'rm':if(S.channels[i])chg(()=>S.channels.splice(i,1));break;
+    case 'to':{const r=moveTo(i,c.v|0);if(r)say(r);break}
+    case 'mv':mv(i,c.d<0?-1:1);break;
+    case 'ren':if(S.channels[i]){S.channels[i].n=String(c.n||'').trim().slice(0,60)||S.channels[i].n;save();renderGuide();renderSet()}break;
+    case 'gf':S.gf=String(c.v||'');save();if(cur===0)renderGuide();dirty=1;break;
+    case 'grp':if(S.channels[i]){S.channels[i].g=String(c.v||'').trim().slice(0,30);save();renderGuide();dirty=1;if($('set').open)renderSet()}break;
+    case 'hide':if(S.channels[i]){S.channels[i].hide=!!c.v;save();renderGuide();dirty=1;if($('set').open)renderSet()}break;
+    case 'opt':setOpt(i,String(c.k||''),c.k==='order'?String(c.v):c.v|0);break;
+    case 'cc':S.cc=!!c.v;save();applyCC();break;
+    case 'apikey':setKey(c.v);say('API key saved on the TV.');break;
+    case 'refresh':say('Refreshing the guide...');refreshStale(true).then(()=>say('Guide refreshed.'));break;
+    case 'settings':openSet();break;
+    case 'scale':bump(c.d<0?-.25:.25);break;
+    case 'seek':S.seek=!!c.v;save();break;
+    case 'reset':resetDefaults();say('Default channels restored.');break;
+  }
+}
+let act=false;
+async function poll(){
+  try{
+    const body={};if(dirty){body.state=snap();dirty=0}
+    const r=await fetch('remote.php?c='+S.rc+'&a=tv',{method:'POST',body:JSON.stringify(body)}).then(r=>r.json());
+    act=!!r.act;
+    for(const c of (r.cmds||[]))await runCmd(c);
+  }catch(e){dirty=1}
+  setTimeout(poll,act?1500:6000);
+}
+showRemote();poll();
+if(location.hash==='#kiosk'){on=true;$('power').hidden=true;wake()}
+applyScale();renderGuide();applyVol();
+</script>
+</body>
+</html>

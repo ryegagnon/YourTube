@@ -1,0 +1,9 @@
+#!/bin/bash
+# Closes the YourTube browser window, the watchdog, the remote helper and the server.
+PORT="${YOURTUBE_PORT:-1984}"
+mkdir -p "$HOME/.cache/yourtube"; touch "$HOME/.cache/yourtube/stopped"   # tells the watchdog this stop is on purpose
+pkill -f yourtube-watch
+sleep 1
+pkill -f yourtube-browser
+pkill -f yourtube-cec
+pkill -f "php -S 0.0.0.0:$PORT"
